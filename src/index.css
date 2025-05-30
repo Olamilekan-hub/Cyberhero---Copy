@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Orbitron-Bold", "Segoe UI",
+    "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #fff;
+  background-color: darkblue;
+  letter-spacing: 1px;
+}
+* {
+  box-sizing: border-box;
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+@font-face {
+  font-family: "Bionic";
+  src: local("Bionic"),
+    url(./assets/fonts/BIONICKIDSIMPLE.ttf) format("truetype");
+}
+@font-face {
+  font-family: "Orbitron-Bold";
+  src: local("Orbitron-Bold"),
+    url(./assets/fonts/Orbitron-Bold.ttf) format("truetype");
+}
+:root {
+  /* If you change nav-height, update navHeight in constants.js */
+  --nav-height: 80px;
+  --border-radius: 10px;
+  /* Colors */
+  --blue: rgb(26, 33, 128);
+  --green: rgb(46, 255, 88);
+  --cyan: rgb(22, 202, 202);
+  --light-cyan: rgb(0, 187, 255);
+  --trans-grey: rgba(239, 239, 239, 0.5);
+  --trans-blue: rgba(26, 33, 128, 0.7);
+  --trans-cyan: rgba(22, 202, 202, 0.8);
+  --trans-black: rgba(0, 0, 0, 0.7);
+  --nav-color: rgba(127, 134, 236, 0.2);
+  --nav-color-solid: var(--blue);
+}
+

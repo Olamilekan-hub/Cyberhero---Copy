@@ -1,0 +1,6 @@
+[build]
+    functions = "api"
+    publish = "build"
+
+[context.production.environment]
+  NODE_VERSION = "16"
