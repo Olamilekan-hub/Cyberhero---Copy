@@ -14,6 +14,7 @@ const { sendVerificationEmail } = require("./helpers/email");
 
 // Mailchimp
 const { addSubscriber } = require("./helpers/mailChimp");
+const { addTagsToSubscriber } = require("./helpers/mailChimp");
 
 // Constants
 const saltRounds = 10;
@@ -75,9 +76,39 @@ exports.handler = async (event, context) => {
     await sendVerificationEmail(newUser._id, newUser.email);
 
     if (requestBody.isSubscribed) {
-      console.log("Adding to Mailchimp");
-      // Add to Mailchimp
-      await addSubscriber(newUser.email);
+      console.log("Adding to Mailchimp with enhanced data");
+
+      // Add subscriber with more detailed information
+      const mailchimpResult = await addSubscriber(
+        newUser.email,
+        requestBody.username, // firstName field
+        "", // lastName (can be added to registration form)
+        ["new-user", "mission-gaia"] // default tags
+      );
+
+      // Add additional tags based on user preferences
+      if (mailchimpResult && !mailchimpResult.error) {
+        const additionalTags = [];
+
+        // You can add more preference checkboxes to registration
+        if (requestBody.preferences?.newFeatures)
+          additionalTags.push("new-features");
+        if (requestBody.preferences?.contentUpdates)
+          additionalTags.push("content-updates");
+        if (requestBody.preferences?.announcements)
+          additionalTags.push("announcements");
+
+        // Add age-appropriate content tags
+        if (requestBody.age) {
+          if (requestBody.age >= 9 && requestBody.age <= 12) {
+            additionalTags.push("target-age");
+          }
+        }
+
+        if (additionalTags.length > 0) {
+          await addTagsToSubscriber(newUser.email, additionalTags);
+        }
+      }
     }
 
     return {
