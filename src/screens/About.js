@@ -5,6 +5,7 @@ import styled from "styled-components";
 import ReactMarkdown from "react-markdown";
 import Loading from "./Loading";
 import Footer from "../components/containers/Footer";
+import { SEO } from "../components/atoms/SEO";
 const About = ({ dispatch, pages }) => {
   const [pageData, setPageData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,13 @@ const About = ({ dispatch, pages }) => {
   };
   return (
     <Container>
+      <SEO
+        title="About Mission: G.A.I.A. - Environmental Education Platform"
+        description="Learn about Mission: G.A.I.A.'s mission to empower young environmental heroes through interactive education. Discover our approach to teaching climate action and sustainability to kids aged 9-12."
+        url="/about"
+        type="article"
+        keywords="about mission gaia, environmental education mission, climate education platform, sustainability education for kids"
+      />
       <MainContainer>
         {loading && <Loading />}
         <Title>{pageData.title}</Title>

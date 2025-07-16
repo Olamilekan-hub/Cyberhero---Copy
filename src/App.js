@@ -10,6 +10,7 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { onStart } from "./redux/managers/authManager";
 
+
 import Nav from "./components/sections/Nav";
 import logo from "./assets/logo.png";
 // Screens //
@@ -85,57 +86,59 @@ function App(props) {
 
   // console.log("app-wide rerender");
   return (
-    <Router>
-      <SEO
-        title={"MISSION | G.A.I.A."}
-        description={`Mission: G.A.I.A. is a dynamic edtech platform blending gamified learning with real-world environmental challenges. Inspired by "Chronicles of G.A.I.A" and focused on 9-12 year-olds, it offers interactive hero training and global missions curricula, fostering ecoliteracy and social-emotional growth. Our approach empowers youth with courage, compassion, and eco-consciousness, turning learning into proactive environmental stewardship and leadership.`}
-        image={logo}
-      />
-      <ScrollToTop />
-      <MainContainer bg={currentBG}>
-        <Nav
-          history={history}
-          signedIn={!!token}
-          dispatch={dispatch}
-          cartTotal={cart.length}
-          toggleCart={() => setCartOpen(!cartOpen)}
+      <Router>
+        <SEO
+          title="MISSION | G.A.I.A. - Environmental Heroes Training Platform"
+          description="Join Mission: G.A.I.A. and become an environmental hero! Interactive educational platform for kids aged 9-12. Learn about climate change, sustainability, and ecology through engaging missions and games."
+          image={logo}
+          url={url}
+          keywords="environmental education, kids climate game, sustainability learning, interactive STEM, ecology education, mission gaia, mission, gaia, missiongaia, mission: gaia"
         />
-        {cartOpen && (
-          <CartModal cart={cart} onCancel={() => setCartOpen(false)} />
-        )}
-        <Switch>
-          <PrivateRoute path="/mission/:missionID/:taskName">
-            <Mission />
-          </PrivateRoute>
-          <PrivateRoute path="/mission/:missionID">
-            <Mission />
-          </PrivateRoute>
-          <PrivateRoute path="/mission">
-            <Mission />
-          </PrivateRoute>
-          <PrivateRoute path="/profile">
-            <Profile />
-          </PrivateRoute>
-          <PublicOnlyRoute path="/login">
-            <Login dispatch={dispatch} />
-          </PublicOnlyRoute>
-          <PublicOnlyRoute path="/register">
-            <Register dispatch={dispatch} verificationEmail={email} />
-          </PublicOnlyRoute>
-          <PublicOnlyRoute path="/confirm">
-            <EmailVerify dispatch={dispatch} history={history} />
-          </PublicOnlyRoute>
-          <Route path="/about">
-            <About />
-          </Route>
-          <Route path="/terms">
-            <TermsOfUsage />
-          </Route>{" "}
-          <Route path="/">{token ? <HQ history={history} /> : <Home />}</Route>
-          <Route>{token ? <HQ history={history} /> : <Home />}</Route>
-        </Switch>
-      </MainContainer>
-    </Router>
+        <ScrollToTop />
+        <MainContainer bg={currentBG}>
+          <Nav
+            history={history}
+            signedIn={!!token}
+            dispatch={dispatch}
+            cartTotal={cart.length}
+            toggleCart={() => setCartOpen(!cartOpen)}
+          />
+          {cartOpen && (
+            <CartModal cart={cart} onCancel={() => setCartOpen(false)} />
+          )}
+          <Switch>
+            <PrivateRoute path="/mission/:missionID/:taskName">
+              <Mission />
+            </PrivateRoute>
+            <PrivateRoute path="/mission/:missionID">
+              <Mission />
+            </PrivateRoute>
+            <PrivateRoute path="/mission">
+              <Mission />
+            </PrivateRoute>
+            <PrivateRoute path="/profile">
+              <Profile />
+            </PrivateRoute>
+            <PublicOnlyRoute path="/login">
+              <Login dispatch={dispatch} />
+            </PublicOnlyRoute>
+            <PublicOnlyRoute path="/register">
+              <Register dispatch={dispatch} verificationEmail={email} />
+            </PublicOnlyRoute>
+            <PublicOnlyRoute path="/confirm">
+              <EmailVerify dispatch={dispatch} history={history} />
+            </PublicOnlyRoute>
+            <Route path="/about">
+              <About />
+            </Route>
+            <Route path="/terms">
+              <TermsOfUsage />
+            </Route>
+            <Route path="/">{token ? <HQ history={history} /> : <Home />}</Route>
+            <Route>{token ? <HQ history={history} /> : <Home />}</Route>
+          </Switch>
+        </MainContainer>
+      </Router>
   );
 }
 

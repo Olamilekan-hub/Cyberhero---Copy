@@ -27,6 +27,9 @@ import TrainingAreaContainer from "../components/containers/TrainingAreaContaine
 import AssetsContainer from "../components/containers/AssetsContainer";
 
 import SoundButton from "../components/atoms/SoundButton";
+
+import { SEO } from "../components/atoms/SEO";
+
 const Mission = ({
   missions,
   progress,
@@ -192,6 +195,27 @@ const Mission = ({
     return true;
   };
 
+  const getMissionSEO = () => {
+    if (!selectedMission) {
+      return {
+        title: "Mission Not Found - Mission: G.A.I.A.",
+        description: "The requested mission could not be found. Return to the main platform to continue your environmental hero journey.",
+        keywords: "mission not found, environmental education"
+      };
+    }
+
+    const missionType = selectedMission.missionType === "Training" ? "Training Mission" : "Global Mission";
+    
+    return {
+      title: `${selectedMission.name} - ${missionType} | Mission: G.A.I.A.`,
+      description: `Join the ${selectedMission.name} ${missionType.toLowerCase()} and learn about environmental protection. Interactive activities, quizzes, and real-world impact for young eco-heroes.`,
+      keywords: `${selectedMission.name}, environmental mission, ${missionType.toLowerCase()}, climate action, sustainability education`,
+      image: selectedMission.largeIcon || selectedMission.smallIcon
+    };
+  };
+
+  const missionSEO = getMissionSEO();
+
   // const isQuizCompleted = () => {
   //   if (!selectedMissionProgress) return false;
   //   const temp =
@@ -306,6 +330,16 @@ const Mission = ({
   if (!selectedMission) {
     return (
       <MainContainer>
+        <SEO
+        title={missionSEO.title}
+        description={missionSEO.description}
+        url={`/mission/${selectedMissionID}${selectedTask ? `/${selectedTask}` : ''}`}
+        type="article"
+        keywords={missionSEO.keywords}
+        image={missionSEO.image}
+      />
+      
+      <Location>{getLocation()}</Location>
         <h3>Mission not found!</h3>
       </MainContainer>
     );
@@ -313,6 +347,16 @@ const Mission = ({
   if(!selectedMission.published) {
     return (
       <MainContainer>
+        <SEO
+        title={missionSEO.title}
+        description={missionSEO.description}
+        url={`/mission/${selectedMissionID}${selectedTask ? `/${selectedTask}` : ''}`}
+        type="article"
+        keywords={missionSEO.keywords}
+        image={missionSEO.image}
+      />
+      
+      <Location>{getLocation()}</Location>
         <h3>Coming soon...</h3>
       </MainContainer>
     );
@@ -320,6 +364,16 @@ const Mission = ({
   if (missionComplete && isCoinAnimated)
     return (
       <MainContainer>
+        <SEO
+        title={missionSEO.title}
+        description={missionSEO.description}
+        url={`/mission/${selectedMissionID}${selectedTask ? `/${selectedTask}` : ''}`}
+        type="article"
+        keywords={missionSEO.keywords}
+        image={missionSEO.image}
+      />
+      
+      <Location>{getLocation()}</Location>
         <MissionComplete
           badgeImg={selectedMission.largeIcon}
           continueClick={() => setIsCoinAnimated(false)}
@@ -331,6 +385,14 @@ const Mission = ({
   else
     return (
       <MainContainer>
+        <SEO
+        title={missionSEO.title}
+        description={missionSEO.description}
+        url={`/mission/${selectedMissionID}${selectedTask ? `/${selectedTask}` : ''}`}
+        type="article"
+        keywords={missionSEO.keywords}
+        image={missionSEO.image}
+      />
         <Location>{getLocation()}</Location>
         {loading && <Loading />}
         <Sizing>

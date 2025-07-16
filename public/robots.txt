@@ -1,3 +1,19 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt for Mission: G.A.I.A.
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /.netlify/
+Disallow: /admin/
+Disallow: /private/
+
+# Allow specific important pages
+Allow: /
+Allow: /about
+Allow: /mission
+Allow: /register
+
+# Sitemap location
+Sitemap: https://missiongaia.com/sitemap.xml
+
+# Crawl delay for polite crawlers
+Crawl-delay: 1

@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Mission GAIA",
+  "name": "Mission: G.A.I.A. - Environmental Heroes",
+  "description": "Interactive environmental education platform for young eco-heroes aged 9-12",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,39 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#16caca",
+  "background_color": "#1a4480",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["education", "kids", "environment", "games"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Mission G.A.I.A. Dashboard"
+    },
+    {
+      "src": "screenshot2.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Environmental Mission Progress"
+    }
+  ]
 }
