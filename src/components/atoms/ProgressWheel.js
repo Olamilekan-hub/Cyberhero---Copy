@@ -4,6 +4,9 @@ import styled from "styled-components";
 import hexagonFrame from "../../assets/hexagon-frame.svg";
 import imageMask from "../../assets/imageMask.png";
 import coinSound from "../../assets/sound/game-level-complete-143022.mp3";
+
+import SoundManager from '../../services/SoundManager';
+
 const ProgressWheel = ({
   xp,
   totalXP,
@@ -13,14 +16,14 @@ const ProgressWheel = ({
   complete,
 }) => {
   const completeRef = useRef(null);
-  const [sound] = useState(new Audio(coinSound));
+  
   useEffect(() => {
     if (completeRef.current !== null) {
-      sound.currentTime = 0;
-      sound.play();
+      SoundManager.play('coin');
     }
     completeRef.current = true;
-  }, [complete, sound]);
+  }, [complete]);
+
   const getPercent = (totalXp, xp) => {
     let value = 0;
     value = (xp * 100) / totalXp;

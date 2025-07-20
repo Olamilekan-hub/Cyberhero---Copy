@@ -1,13 +1,11 @@
-import { useState } from "react";
-import Sound from "../../assets/sound/click-game-menu-147356.mp3";
+import React from 'react';
+import SoundManager from '../../services/SoundManager';
 
-const SoundButton = ({ children }) => {
-  const [audio] = useState(new Audio(Sound));
-
+const SoundButton = ({ children, soundKey = 'click' }) => {
   const playClickSound = () => {
-    audio.currentTime = 0;
-    audio.play();
+    SoundManager.play(soundKey);
   };
+  
   return <div onClick={playClickSound}>{children}</div>;
 };
 

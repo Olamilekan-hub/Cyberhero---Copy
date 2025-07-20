@@ -5,6 +5,9 @@ import ChallengeQuestion from "../atoms/ChallengeQuestion";
 import SingleBorderFrame from "./SingleBorderFrame";
 import successSound from "../../assets/sound/challenge-success-video-game-6346.mp3";
 import failSound from "../../assets/sound/wrong-answer-129254.mp3";
+
+import SoundManager from '../../services/SoundManager';
+
 const ChallengeContainer = ({
   unlocked,
   tried,
@@ -19,22 +22,30 @@ const ChallengeContainer = ({
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const [successAudio, setSuccessAudio] = useState(new Audio(successSound));
-  const [failAudio, setFailAudio] = useState(new Audio(failSound));
+  // const [successAudio, setSuccessAudio] = useState(new Audio(successSound));
+  // const [failAudio, setFailAudio] = useState(new Audio(failSound));
+
+  // const playSuccessSound = () => {
+  //   successAudio.pause();
+  //   failAudio.pause();
+  //   const newAudio = new Audio(successSound);
+  //   newAudio.play();
+  //   setSuccessAudio(newAudio);
+  // };
+  // const playFailSound = () => {
+  //   successAudio.pause();
+  //   failAudio.pause();
+  //   const newAudio = new Audio(failSound);
+  //   newAudio.play();
+  //   setFailAudio(newAudio);
+  // };
 
   const playSuccessSound = () => {
-    successAudio.pause();
-    failAudio.pause();
-    const newAudio = new Audio(successSound);
-    newAudio.play();
-    setSuccessAudio(newAudio);
+    SoundManager.play('success');
   };
+
   const playFailSound = () => {
-    successAudio.pause();
-    failAudio.pause();
-    const newAudio = new Audio(failSound);
-    newAudio.play();
-    setFailAudio(newAudio);
+    SoundManager.play('fail');
   };
 
   const nextQuestion = () => {

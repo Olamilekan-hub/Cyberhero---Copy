@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import DoubleBorderFrame from "./DoubleBorderFrame";
 import xpSound from "../../assets/sound/collect-XP.mp3";
+import SoundManager from '../../services/SoundManager';
+
 const MissionComplete = ({
   badgeImg,
   continueClick,
@@ -9,12 +11,8 @@ const MissionComplete = ({
   restartClick,
 }) => {
   const playSound = () => {
-    const newAudio = new Audio(xpSound);
-    newAudio.play();
+    SoundManager.play('xp');
   };
-  useEffect(() => {
-    playSound();
-  }, []);
   return (
     <DoubleBorderFrame useMissionFrame width="80%">
       <InnerContainer>

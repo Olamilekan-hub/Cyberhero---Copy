@@ -226,8 +226,7 @@ This verification link will expire in 24 hours for your security.
 
 If you didn't create an account with Mission: G.A.I.A., please ignore this email.
 
-Welcome aboard!Olamilekan-hub
-i need you to check this entire code base to satisfy the picture above
+Welcome aboard!
 The Mission: G.A.I.A. Team`,
       html: htmlTemplate,
       tracking_settings: {

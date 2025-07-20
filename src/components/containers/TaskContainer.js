@@ -13,6 +13,9 @@ import xpSound from "../../assets/sound/collect-XP.mp3";
 import shareNotification from "../../assets/Notification-34.png";
 import saveNotification from "../../assets/Notification-35.png";
 import SoundButton from "../atoms/SoundButton";
+
+import SoundManager from '../../services/SoundManager';
+
 const TaskContainer = ({
   task,
   missionType,
@@ -78,9 +81,8 @@ const TaskContainer = ({
     }
   };
   const playSound = () => {
-    const newAudio = new Audio(xpSound);
-    newAudio.play();
-  };
+  SoundManager.play('xp');
+};
   return isNotification ? (
     isNotification === "share" ? (
       <NotificationImg><img src={shareNotification} alt="" /></NotificationImg>

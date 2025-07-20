@@ -9,9 +9,6 @@ import Footer from "../components/containers/Footer";
 
 import bg from "../assets/BG_Short.png";
 import Button from "../components/atoms/Button";
-
-import { SEO } from "../components/atoms/SEO";
-
 const Home = ({ dispatch, pages }) => {
   const [pageData, setPageData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -53,13 +50,6 @@ const Home = ({ dispatch, pages }) => {
 
   return (
     <MainContainer>
-      <SEO
-        title="Mission: G.A.I.A. - Environmental Heroes Start Here!"
-        description="Become an environmental hero! Join thousands of kids learning about climate change and sustainability through interactive missions. Perfect for ages 9-12. Start your eco-adventure today!"
-        url="/"
-        type="website"
-        keywords="environmental education for kids, climate change games, sustainability learning, eco heroes, green education platform"
-      />
       {loading && <Loading />}
       {pageData.video && (
         <VideoContainer>
