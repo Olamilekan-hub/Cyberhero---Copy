@@ -1,35 +1,33 @@
 const { createConnection } = require("./helpers/connection");
 const Achievement = require("./models/achievement.model");
 const Leaderboard = require("./models/leaderboard.model");
+const { createSecureResponse } = require("./helpers/security");
+const { rateLimitMiddleware } = require("./helpers/rateLimiter");
 
-exports.handler = async () => {
+const syncLeaderboardHandler = async (event, context) => {
   try {
     await createConnection();
 
     // Get sorted by XP array
     await Achievement.createIndexes({ xp: 1 });
     const achievements = await Achievement.find().sort({ xp: -1 });
-    console.log(achievements);
 
     // Add rankings to array objects for placement number
     const userRankings = addRanking(achievements);
-    console.log(userRankings);
 
     // Wipe leaderboard, and replace with new
     await Leaderboard.deleteMany();
     const result = await Leaderboard.insertMany(userRankings);
-    console.log("syncLeaderboard final result:", result);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ result }),
-    };
+    return createSecureResponse(200, { 
+      message: "Leaderboard synchronized successfully",
+      count: result.length 
+    });
   } catch (error) {
-    console.log(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify(error),
-    };
+    console.error('Sync leaderboard error:', error);
+    return createSecureResponse(500, {
+      message: "Internal server error"
+    });
   }
 };
 
@@ -41,9 +39,10 @@ const addRanking = (arr) => {
       ...item._doc,
       rank,
     };
-    // console.log('newObj', newObj);
     returnArr.push(newObj);
     rank++;
   });
   return returnArr;
 };
+
+exports.handler = rateLimitMiddleware('heavy')(syncLeaderboardHandler);

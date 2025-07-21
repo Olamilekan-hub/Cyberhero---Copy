@@ -14,6 +14,7 @@ const { sendVerificationEmail } = require("./helpers/email");
 const { createSecureResponse } = require("./helpers/security");
 const InputSanitizer = require("./helpers/sanitizer");
 const { USER_REGISTRATION_SCHEMA } = require("./helpers/schemas");
+const { rateLimitMiddleware } = require("./helpers/rateLimiter");
 
 // Mailchimp
 const { addSubscriber } = require("./helpers/mailChimp");
@@ -22,7 +23,7 @@ const { addTagsToSubscriber } = require("./helpers/mailChimp");
 // Constants
 const saltRounds = 10;
 
-exports.handler = async (event, context) => {
+const registerHandler = async (event, context) => {
   try {
     // Handle CORS preflight
     if (event.httpMethod === 'OPTIONS') {
@@ -147,3 +148,5 @@ exports.handler = async (event, context) => {
     });
   }
 };
+
+exports.handler = rateLimitMiddleware('auth')(registerHandler);

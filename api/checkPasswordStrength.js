@@ -1,7 +1,8 @@
 const passwordPolicy = require("./helpers/passwordPolicy");
 const { createSecureResponse } = require("./helpers/security");
+const { rateLimitMiddleware } = require("./helpers/rateLimiter");
 
-exports.handler = async (event, context) => {
+const passwordStrengthHandler = async (event, context) => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return createSecureResponse(200, '');
@@ -25,7 +26,6 @@ exports.handler = async (event, context) => {
     }
 
     const validation = passwordPolicy.validatePassword(password, userInfo);
-
     const strengthIndicator = passwordPolicy.getStrengthIndicator(validation.score);
 
     return createSecureResponse(200, {
@@ -45,3 +45,5 @@ exports.handler = async (event, context) => {
     });
   }
 };
+
+exports.handler = rateLimitMiddleware('password')(passwordStrengthHandler);

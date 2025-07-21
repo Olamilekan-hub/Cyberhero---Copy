@@ -1,7 +1,8 @@
 const { JWTManager } = require("./helpers/auth");
 const { createSecureResponse } = require("./helpers/security");
+const { rateLimitMiddleware } = require("./helpers/rateLimiter");
 
-exports.handler = async (event, context) => {
+const refreshTokenHandler = async (event, context) => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return createSecureResponse(200, '');
@@ -49,3 +50,5 @@ exports.handler = async (event, context) => {
     });
   }
 };
+
+exports.handler = rateLimitMiddleware('token')(refreshTokenHandler);

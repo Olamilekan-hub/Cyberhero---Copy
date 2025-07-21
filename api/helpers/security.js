@@ -1,3 +1,4 @@
+const envValidator = require("./envValidator");
 const ALLOWED_ORIGINS = [
   'https://prod-cyberheroes.netlify.app',
   'https://missiongaia.com',
@@ -30,13 +31,25 @@ const createSecureResponse = (statusCode, body, additionalHeaders = {}) => {
   const origin = process.env.HTTP_ORIGIN || '';
   const corsHeaders = getCorsHeaders(origin);
   
+  let responseBody = body;
+  if (statusCode >= 400 && statusCode < 600 && envValidator.isProduction()) {
+    if (typeof body === 'object' && body.message) {
+      responseBody = {
+        ...body,
+        message: envValidator.getSanitizedError(new Error(body.message), '').replace(/^: /, '')
+      };
+    } else if (typeof body === 'string') {
+      responseBody = envValidator.getSanitizedError(new Error(body), '').replace(/^: /, '');
+    }
+  }
+  
   return {
     statusCode,
     headers: {
       ...corsHeaders,
       ...additionalHeaders
     },
-    body: typeof body === 'string' ? body : JSON.stringify(body)
+    body: typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)
   };
 };
 

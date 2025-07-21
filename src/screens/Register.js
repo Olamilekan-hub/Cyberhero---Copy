@@ -18,6 +18,7 @@ import Loading from "./Loading";
 import Button from "../components/atoms/Button";
 import Input from "../components/atoms/Input";
 import Checkbox from "../components/atoms/Checkbox";
+import PasswordInput from "../components/atoms/PasswordInput";
 
 // Utils
 import { validateThis } from "../utils/validations";
@@ -199,14 +200,18 @@ class Register extends Component {
                 handleOnChange={this.handleInputChange}
                 errorText={email_error}
               />
-              <Input
-                title="Password"
-                name="password"
-                type="password"
-                value={password}
-                handleOnChange={this.handleInputChange}
-                errorText={password_error}
-              />
+              <PasswordInput
+                  title="Password"
+                  name="password"
+                  value={password}
+                  handleOnChange={this.handleInputChange}
+                  errorText={password_error}
+                  showStrength={true}
+                  userInfo={{
+                    username: username,
+                    email: email
+                  }}
+                />
               <Input
                 title="Password Repeat"
                 name="password2"

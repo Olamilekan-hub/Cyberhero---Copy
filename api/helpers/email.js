@@ -1,11 +1,18 @@
 const sgMail = require("@sendgrid/mail");
 const Token = require("../models/token.model");
 const { createConnection } = require("./connection");
+const envValidator = require("./envValidator");
 const crypto = require("crypto");
 
 const sendVerificationEmail = async (userID, userEmail) => {
   try {
+    envValidator.validateRequired();
+
     const { SENDGRID_API_KEY, EMAIL_LINK_URL, LOCALHOST_EMAIL } = process.env;
+
+    if (!envValidator.isValidSecret('SENDGRID_API_KEY', SENDGRID_API_KEY)) {
+      throw new Error('Invalid email service configuration');
+    }
 
     // Create Token
     await createConnection();
@@ -208,13 +215,9 @@ const sendVerificationEmail = async (userID, userEmail) => {
     // Send email
     sgMail.setApiKey(SENDGRID_API_KEY);
     const msg = {
-      to:
-        LOCALHOST_EMAIL === "true"
-          ? process.env.SERVER_URL
-          : userEmail || process.env.SERVER_URL,
+      to: LOCALHOST_EMAIL === "true" ? process.env.SERVER_URL : userEmail || process.env.SERVER_URL,
       from: process.env.SERVER_URL,
-      subject:
-        "Mission: G.A.I.A. Email Verification - Your Adventure Awaits! 🚀",
+      subject: "Mission: G.A.I.A. Email Verification - Your Adventure Awaits! 🚀",
       text: `Welcome to Mission: G.A.I.A.! 
 
 Are you ready to begin your adventure? 
@@ -236,14 +239,19 @@ The Mission: G.A.I.A. Team`,
       },
     };
 
-    console.log("sending email to", msg.to);
     return await sgMail.send(msg);
+
   } catch (error) {
-    console.error("error occured", error);
-    if (error.response) {
-      console.error("error:", error.response.body);
+    // Sanitize email service errors
+    const sanitizedError = envValidator.getSanitizedError(error, 'Email service error');
+    
+    if (envValidator.isProduction()) {
+      console.error('Email Error (Sanitized):', sanitizedError);
+      throw new Error('Email delivery failed');
+    } else {
+      console.error('Email Error:', sanitizedError);
+      throw new Error(sanitizedError);
     }
-    throw error;
   }
 };
 

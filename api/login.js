@@ -5,8 +5,10 @@ const { JWTManager } = require("./helpers/auth");
 const { createSecureResponse } = require("./helpers/security");
 const InputSanitizer = require("./helpers/sanitizer");
 const { USER_LOGIN_SCHEMA } = require("./helpers/schemas");
+const { rateLimitMiddleware } = require("./helpers/rateLimiter");
+const DatabaseSecurity = require("./helpers/dbSecurity");
 
-exports.handler = async (event, context) => {
+const loginHandler = async (event, context) => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return createSecureResponse(200, '');
@@ -34,12 +36,16 @@ exports.handler = async (event, context) => {
 
     await createConnection();
 
-    // Find user
-    const user = await User.findOne({
-      username: sanitizedData.username,
-    });
+    // Use secure user lookup with password field
+    const user = await DatabaseSecurity.executeSafeQuery(
+      () => User.findByCredentials(sanitizedData.username, true),
+      'user_login_lookup',
+      { username: sanitizedData.username }
+    );
     
     if (!user) {
+      // Consistent timing to prevent user enumeration
+      await bcrypt.compare('dummy_password', '$2b$10$dummy.hash.to.prevent.timing.attacks');
       return createSecureResponse(401, { 
         message: "Invalid credentials" 
       });
@@ -72,25 +78,28 @@ exports.handler = async (event, context) => {
 
     const tokens = JWTManager.createTokenPair(tokenPayload);
     
-    // Store refresh token in database (optional - for token revocation)
-    await User.findByIdAndUpdate(user._id, { 
-      $set: { 
-        lastLoginAt: new Date(),
-        refreshTokenHash: require('crypto')
-          .createHash('sha256')
-          .update(tokens.refreshToken)
-          .digest('hex')
-      } 
-    });
+    // Store refresh token hash and update login time securely
+    await DatabaseSecurity.executeSafeQuery(
+      () => User.findOneAndUpdate(
+        { _id: user._id },
+        { 
+          $set: { 
+            lastLoginAt: new Date(),
+            refreshTokenHash: require('crypto')
+              .createHash('sha256')
+              .update(tokens.refreshToken)
+              .digest('hex')
+          }
+        },
+        { new: true }
+      ),
+      'user_login_update',
+      { userId: user._id }
+    );
     
     return createSecureResponse(200, {
       message: "Login successful",
-      user: {
-        userID: user._id,
-        username: user.username,
-        email: user.email,
-        verified: user.verified
-      },
+      user: user.toSafeObject(),
       tokens: {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -99,9 +108,11 @@ exports.handler = async (event, context) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', DatabaseSecurity.sanitizeDBError(error));
     return createSecureResponse(500, { 
       message: "Internal server error" 
     });
   }
 };
+
+exports.handler = rateLimitMiddleware('auth')(loginHandler);
