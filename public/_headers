@@ -1,0 +1,40 @@
+# Security Headers for Mission: G.A.I.A.
+/*
+  # Prevent clickjacking attacks
+  X-Frame-Options: DENY
+  
+  # Prevent MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # Enable XSS protection
+  X-XSS-Protection: 1; mode=block
+  
+  # Force HTTPS
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # Content Security Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://calendar.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'self' https://calendar.google.com https://www.youtube.com; media-src 'self' data: blob: https:
+  
+  # Referrer policy
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Permissions policy
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  
+  # Remove server information
+  X-Powered-By: ""
+
+# Additional headers for API endpoints
+/api/*
+  Access-Control-Allow-Origin: https://missiongaia.com
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  Access-Control-Max-Age: 86400
+
+# Additional headers for static assets
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Additional headers for service worker
+/sw.js
+  Cache-Control: no-cache

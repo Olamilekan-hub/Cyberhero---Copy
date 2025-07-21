@@ -1,25 +1,29 @@
 const { createConnection } = require("./helpers/connection");
 const Art = require("./models/art.model");
+const { createSecureResponse } = require("./helpers/security");
+const AuthMiddleware = require("./helpers/authMiddleware");
 
-exports.handler = async (event, context) => {
+// Main handler with authentication
+const getUserArtHandler = async (event) => {
   try {
-    const { userID } = event.queryStringParameters;
-    if (!userID) throw new Error("No userID included in request");
+    const { userID } = event.queryStringParameters || {};
+    
+    // If no userID provided, use authenticated user's ID
+    const targetUserID = userID || event.user.userId;
 
     await createConnection();
-    const art = await Art.find({
-      userID,
-    });
-    // console.log(art);
+    const art = await Art.find({ userID: targetUserID });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(art),
-    };
+    return createSecureResponse(200, art);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify(error),
-    };
+    console.error('Get user art error:', error);
+    return createSecureResponse(500, {
+      message: "Internal server error"
+    });
   }
+};
+
+// Export with authentication middleware
+exports.handler = async (event, context) => {
+  return AuthMiddleware.requireAuth(event, getUserArtHandler);
 };

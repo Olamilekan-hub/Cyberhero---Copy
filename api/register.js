@@ -11,6 +11,9 @@ const FavoriteArts = require("./models/favoriteArts.model");
 // Helpers
 const { createConnection } = require("./helpers/connection");
 const { sendVerificationEmail } = require("./helpers/email");
+const { createSecureResponse } = require("./helpers/security");
+const InputSanitizer = require("./helpers/sanitizer");
+const { USER_REGISTRATION_SCHEMA } = require("./helpers/schemas");
 
 // Mailchimp
 const { addSubscriber } = require("./helpers/mailChimp");
@@ -21,12 +24,39 @@ const saltRounds = 10;
 
 exports.handler = async (event, context) => {
   try {
-    const requestBody = JSON.parse(event.body);
+    // Handle CORS preflight
+    if (event.httpMethod === 'OPTIONS') {
+      return createSecureResponse(200, '');
+    }
+
+    // Parse and sanitize input
+    let requestBody;
+    try {
+      requestBody = JSON.parse(event.body);
+    } catch (error) {
+      return createSecureResponse(400, { 
+        message: "Invalid JSON format" 
+      });
+    }
+
+    // Sanitize and validate input
+    let sanitizedData;
+    try {
+      sanitizedData = InputSanitizer.sanitizeObject(requestBody, USER_REGISTRATION_SCHEMA);
+    } catch (error) {
+      return createSecureResponse(400, { 
+        message: `Input validation failed: ${error.message}` 
+      });
+    }
+
     await createConnection();
 
     // Make sure this account doesn't already exist
     const existingUser = await User.findOne({
-      $or: [{ email: requestBody.email }, { username: requestBody.username }],
+      $or: [
+        { email: sanitizedData.email }, 
+        { username: sanitizedData.username }
+      ],
     }).collation({ locale: "en", strength: 2 });
 
     // Check if the user already exists
@@ -34,26 +64,23 @@ exports.handler = async (event, context) => {
       let message;
       if (
         existingUser.username.toLowerCase() ===
-        requestBody.username.toLowerCase()
+        sanitizedData.username.toLowerCase()
       ) {
         message = "Username already exists";
       } else {
         message = "Email address already exists";
       }
 
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message }),
-      };
+      return createSecureResponse(400, { message });
     }
 
-    // hash passwords and store user
-    const hashedPass = await bcrypt.hash(requestBody.password, saltRounds);
+    // Hash passwords and store user
+    const hashedPass = await bcrypt.hash(sanitizedData.password, saltRounds);
     const userObj = new User({
-      username: requestBody.username,
-      email: requestBody.email,
+      username: sanitizedData.username,
+      email: sanitizedData.email,
       password: hashedPass,
-      isSubscribed: requestBody.isSubscribed,
+      isSubscribed: sanitizedData.isSubscribed || false,
     });
     const newUser = await userObj.save();
 
@@ -75,32 +102,30 @@ exports.handler = async (event, context) => {
     // Send email
     await sendVerificationEmail(newUser._id, newUser.email);
 
-    if (requestBody.isSubscribed) {
+    if (sanitizedData.isSubscribed) {
       console.log("Adding to Mailchimp with enhanced data");
 
       // Add subscriber with more detailed information
       const mailchimpResult = await addSubscriber(
         newUser.email,
-        requestBody.username, // firstName field
+        sanitizedData.username, // firstName field
         "", // lastName (can be added to registration form)
         ["new-user", "mission-gaia"] // default tags
       );
 
-      // Add additional tags based on user preferences
       if (mailchimpResult && !mailchimpResult.error) {
         const additionalTags = [];
 
-        // You can add more preference checkboxes to registration
-        if (requestBody.preferences?.newFeatures)
+        if (sanitizedData.preferences?.newFeatures)
           additionalTags.push("new-features");
-        if (requestBody.preferences?.contentUpdates)
+        if (sanitizedData.preferences?.contentUpdates)
           additionalTags.push("content-updates");
-        if (requestBody.preferences?.announcements)
+        if (sanitizedData.preferences?.announcements)
           additionalTags.push("announcements");
 
         // Add age-appropriate content tags
-        if (requestBody.age) {
-          if (requestBody.age >= 9 && requestBody.age <= 12) {
+        if (sanitizedData.age) {
+          if (sanitizedData.age >= 9 && sanitizedData.age <= 12) {
             additionalTags.push("target-age");
           }
         }
@@ -111,18 +136,14 @@ exports.handler = async (event, context) => {
       }
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: "success",
-        email: newUser.email,
-      }),
-    };
+    return createSecureResponse(200, {
+      message: "success",
+      email: newUser.email,
+    });
   } catch (error) {
-    // console.log(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify(error),
-    };
+    console.error('Registration error:', error);
+    return createSecureResponse(500, { 
+      message: "Internal server error" 
+    });
   }
 };
