@@ -14,7 +14,8 @@ import { Carousel } from "react-responsive-carousel";
 import { useEffect, useState } from "react";
 
 import CloseIcon from "../../assets/close.svg";
-import xpSound from "../../assets/sound/collect-XP.mp3";
+// import xpSound from "../../assets/sound/collect-XP.mp3";
+import SoundManager from '../../services/SoundManager';
 const AssetsContainer = ({
   width,
   userMissionXP,
@@ -34,8 +35,7 @@ const AssetsContainer = ({
   useEffect(() => {
     if (missionClicked && prevCoin !== userMissionCoin) {
       setIsCoinChanged(true);
-      const newAudio = new Audio(xpSound);
-      newAudio.play();
+      SoundManager.play('xp');
       let timeout = setTimeout(() => {
         setIsCoinChanged(false);
       }, 3000);

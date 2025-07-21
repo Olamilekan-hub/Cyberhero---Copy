@@ -86,11 +86,30 @@ function App(props) {
   // console.log("app-wide rerender");
   return (
     <Router>
-      <SEO
-        title={"MISSION | G.A.I.A."}
-        description={`Mission: G.A.I.A. is a dynamic edtech platform blending gamified learning with real-world environmental challenges. Inspired by "Chronicles of G.A.I.A" and focused on 9-12 year-olds, it offers interactive hero training and global missions curricula, fostering ecoliteracy and social-emotional growth. Our approach empowers youth with courage, compassion, and eco-consciousness, turning learning into proactive environmental stewardship and leadership.`}
-        image={logo}
-      />
+      <Route exact path="/">
+        <SEO 
+          title="Mission G.A.I.A. - Environmental Education Gaming Platform"
+          description="Transform learning with gamified environmental education. Interactive missions, hero training, and real-world challenges for kids aged 9-12."
+          url="/"
+          type="website"
+        />
+      </Route>
+
+      <Route path="/about">
+        <SEO 
+          title="About Mission G.A.I.A. - Environmental Education Platform"
+          description="Learn about our mission to foster ecoliteracy and social-emotional growth through interactive gaming and real-world environmental challenges."
+          url="/about"
+        />
+      </Route>
+
+      <Route path="/mission">
+        <SEO 
+          title="Environmental Missions - Interactive Learning | Mission G.A.I.A."
+          description="Embark on environmental missions that teach climate science, sustainability, and conservation through gamified learning experiences."
+          url="/mission"
+        />
+      </Route>
       <ScrollToTop />
       <MainContainer bg={currentBG}>
         <Nav

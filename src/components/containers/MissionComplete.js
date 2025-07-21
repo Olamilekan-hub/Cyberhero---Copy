@@ -10,6 +10,10 @@ const MissionComplete = ({
   profileClick,
   restartClick,
 }) => {
+  useEffect(() => {
+  playSound();
+}, []);
+
   const playSound = () => {
     SoundManager.play('xp');
   };

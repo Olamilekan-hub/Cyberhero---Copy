@@ -1,7 +1,8 @@
 {
-  "name": "cyberheroes-website",
+  "name": "missiongaia",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://missiongaia.com",
   "dependencies": {
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@reduxjs/toolkit": "^1.5.0",
@@ -27,6 +28,7 @@
     "react": "^18.2.0",
     "react-calendar": "^4.6.1",
     "react-dom": "^18.2.0",
+    "react-helmet": "^6.1.0",
     "react-hexagon": "^1.1.3",
     "react-hooks-svgdrawing": "^2.1.2",
     "react-icons": "^4.1.0",
