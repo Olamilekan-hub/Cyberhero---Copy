@@ -3,7 +3,7 @@ import { fetchProfile } from "../actions/profileActions";
 
 const initialState = {
   data: {
-    bio: "CyberHero in training!",
+    bio: "Mission:Gaia in training!",
     avatarID: undefined,
   },
   loading: false,

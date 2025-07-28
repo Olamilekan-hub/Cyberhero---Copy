@@ -29,7 +29,7 @@ const GoodsCurrencies = ({ currencies, dispatch }) => {
     <MainContainer>
       <DoubleBorderFrame>
         <InnerContainer>
-          <Header>[ Cyber Store ]</Header>
+          <Header>[ Mission:Gaia Store ]</Header>
           <SubHeader>Select the gifts for your animal friends!</SubHeader>
           <ProductContainer>
             {currencies.map((currency, index) => {

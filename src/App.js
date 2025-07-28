@@ -89,7 +89,7 @@ function App(props) {
       <Route exact path="/">
         <SEO 
           title="Mission G.A.I.A. - Environmental Education Gaming Platform"
-          description="Transform learning with gamified environmental education. Interactive missions, hero training, and real-world challenges for kids aged 9-12."
+          description="Mission: G.A.I.A. is a dynamic edtech platform blending gamified learning with real-world environmental challenges. Interactive hero training and global missions for 9-12 year-olds, fostering ecoliteracy and social-emotional growth."
           url="/"
           type="website"
         />

@@ -142,7 +142,7 @@ class PasswordPolicy {
       userInfo.lastName,
       'mission',
       'gaia',
-      'cyberheroes'
+      'missiongaia'
     ].filter(Boolean);
   }
 

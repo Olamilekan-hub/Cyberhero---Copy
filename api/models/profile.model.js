@@ -9,7 +9,7 @@ const profileSchema = new mongoose.Schema({
   bio: {
     type: String,
     required: true,
-    default: "CyberHero in training!",
+    default: "Mission:GAIA in training!",
   },
   // contentfulID for avatar
   avatarID: {
