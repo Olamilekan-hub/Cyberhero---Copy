@@ -15,6 +15,7 @@ const { createSecureResponse } = require("./helpers/security");
 const InputSanitizer = require("./helpers/sanitizer");
 const { USER_REGISTRATION_SCHEMA } = require("./helpers/schemas");
 const { rateLimitMiddleware } = require("./helpers/rateLimiter");
+const DatabaseSecurity = require("./helpers/dbSecurity"); 
 
 // Mailchimp
 const { addSubscriber } = require("./helpers/mailChimp");
@@ -40,7 +41,6 @@ const registerHandler = async (event, context) => {
       });
     }
 
-    // Sanitize and validate input
     let sanitizedData;
     try {
       sanitizedData = InputSanitizer.sanitizeObject(requestBody, USER_REGISTRATION_SCHEMA);
@@ -49,37 +49,23 @@ const registerHandler = async (event, context) => {
         message: `Input validation failed: ${error.message}` 
       });
     }
-6 
+    
     await createConnection();
 
-    // Make sure this account doesn't already exist
-  //   const existingUser = await User.findOne({
-  //   $or: [
-  //     { email: sanitizedData.email }, 
-  //     { username: sanitizedData.username }
-  //   ],
-  // }, null, { 
-  //   collation: { locale: "en", strength: 2 } 
-  // });
-  const existingUser = await User.findByCredentials(sanitizedData.email) || 
-                    await User.findByCredentials(sanitizedData.username);
+    const existingUser = await User.findByCredentials(sanitizedData.email) || 
+                        await User.findByCredentials(sanitizedData.username);
 
-    // Check if the user already exists
     if (existingUser) {
       let message;
-      if (
-        existingUser.username.toLowerCase() ===
-        sanitizedData.username.toLowerCase()
-      ) {
+      if (existingUser.username.toLowerCase() === sanitizedData.username.toLowerCase()) {
         message = "Username already exists";
       } else {
         message = "Email address already exists";
       }
-
       return createSecureResponse(400, { message });
     }
 
-    // Hash passwords and store user
+    // Hash password and create user
     const hashedPass = await bcrypt.hash(sanitizedData.password, saltRounds);
     const userObj = new User({
       username: sanitizedData.username,
@@ -89,7 +75,7 @@ const registerHandler = async (event, context) => {
     });
     const newUser = await userObj.save();
 
-    // Set some default values in databases now
+    // Create related records
     await Achievement.create({
       username: newUser.username,
       userID: newUser._id,
@@ -104,32 +90,31 @@ const registerHandler = async (event, context) => {
       userID: newUser._id,
     });
 
-    // Try to send verification email, but don't fail registration if email fails
+    // Try to send verification email (don't fail registration if email fails)
     try {
       await sendVerificationEmail(newUser._id, newUser.email);
       
+      // Handle Mailchimp subscription if requested
+      if (sanitizedData.isSubscribed) {
+        try {
+          await addSubscriber(newUser.email, sanitizedData.username, "", ["new-user", "mission-gaia"]);
+        } catch (mailchimpError) {
+          console.warn('Mailchimp subscription failed:', mailchimpError.message);
+        }
+      }
+
       return createSecureResponse(201, {
         message: "Registration successful! Please check your email to verify your account.",
-        user: {
-          id: newUser._id,
-          username: newUser.username,
-          email: newUser.email,
-          verified: newUser.verified
-        }
+        email: newUser.email,
       });
+      
     } catch (emailError) {
       console.error('Email sending failed but user was created:', emailError.message);
       
-      // Return success but inform user about email issue
       return createSecureResponse(201, {
-        message: "Registration successful! However, there was an issue sending the verification email. Please contact support or try logging in.",
-        user: {
-          id: newUser._id,
-          username: newUser.username,
-          email: newUser.email,
-          verified: newUser.verified
-        },
-        emailWarning: "Verification email could not be sent. You may need to verify manually."
+        message: "Registration successful! However, there was an issue sending the verification email. Please contact support.",
+        email: newUser.email,
+        emailWarning: "Verification email could not be sent"
       });
     }
 

@@ -22,12 +22,12 @@ import { getUser } from "../actions/userActions";
 export const onLogin = () => {
   return async (dispatch, getState) => {
     try {
-      const { token, userID, email } = getState().user.data;
+      const { token, userID, email, username } = getState().user.data;
 
       // set LocalStorage Data
-      setLS({ token, userID, email });
+      setLS({ token, userID, email, username });
 
-      // Fetch user data
+      // Rest of the function stays the same...
       const promises = [
         dispatch(fetchAllMissions()),
         dispatch(fetchAllBackgroundImages()),

@@ -34,18 +34,19 @@ const userReducer = createReducer(initialState, {
     state.error = action.error;
   },
   [loginUser.fulfilled]: (state, action) => {
-    state.data.email = action.payload.email;
-    state.data.userID = action.payload.userID;
-    state.data.username = action.payload.username;
-    state.data.token = action.payload.token;
+    const { user, tokens } = action.payload;
+    
+    state.data.email = user.email;
+    state.data.userID = user._id; 
+    state.data.username = user.username;
+    state.data.token = tokens.accessToken; 
     state.loading = false;
     state.error = null;
-    localStorage.setItem("user", {
-      token: action.payload.token,
-      userID: action.payload.userID,
-      username: action.payload.username,
-      email: action.payload.email,
-    });
+    
+    localStorage.setItem("token", tokens.accessToken);
+    localStorage.setItem("userID", user._id);
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("email", user.email);
   },
   [loginUser.pending]: (state, action) => {
     state.loading = true;

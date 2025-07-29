@@ -55,49 +55,40 @@ class DatabaseSecurity {
   }
 
   /**
-   * Check if a key is a dangerous MongoDB operator
-   * @param {string} key - Key to check
+   * Check if an operator is potentially dangerous
+   * @param {string} key - Operator key
    * @returns {boolean} - True if dangerous
    */
   static isDangerousOperator(key) {
+    // Dangerous operators that should be blocked
     const dangerousOperators = [
-      '$where',
-      '$regex',
-      '$expr',
-      '$jsonSchema',
-      '$function',
-      '$accumulator',
-      '$addFields',
-      '$bucket',
-      '$bucketAuto',
-      '$changeStream',
-      '$collStats',
-      '$currentOp',
-      '$facet',
-      '$geoNear',
-      '$graphLookup',
-      '$indexStats',
-      '$listLocalSessions',
-      '$listSessions',
-      '$lookup',
-      '$merge',
-      '$out',
-      '$planCacheStats',
-      '$redact',
-      '$replaceRoot',
-      '$sample',
-      '$unionWith'
+      '$where', '$expr', '$function', '$accumulator', '$reduce',
+      '$map', '$filter', '$switch', '$cond', '$ifNull', '$let',
+      '$addFields', '$project', '$replaceWith', '$replaceRoot',
+      '$unwind', '$bucket', '$bucketAuto', '$collStats', '$count',
+      '$facet', '$geoNear', '$graphLookup', '$group', '$indexStats',
+      '$limit', '$lookup', '$match', '$merge', '$out', '$redact',
+      '$sample', '$skip', '$sort', '$sortByCount', '$unionWith',
+      '$currentOp', '$listLocalSessions', '$listSessions',
+      '$planCacheStats', '$indexStats'
+    ];
+    
+    // Allow safe update operators
+    const safeUpdateOperators = [
+      '$set', '$unset', '$inc', '$mul', '$rename', '$min', '$max',
+      '$currentDate', '$addToSet', '$pop', '$pull', '$push', '$pullAll'
     ];
     
     // Allow safe query operators
-    const safeOperators = [
+    const safeQueryOperators = [
       '$or', '$and', '$nor', '$not',
       '$eq', '$ne', '$gt', '$gte', '$lt', '$lte',
       '$in', '$nin', '$exists', '$type', '$size',
-      '$all', '$elemMatch'
+      '$all', '$elemMatch', '$regex', '$text'
     ];
     
-    if (safeOperators.includes(key)) {
+    // Allow safe operators
+    if (safeUpdateOperators.includes(key) || safeQueryOperators.includes(key)) {
       return false;
     }
     

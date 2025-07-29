@@ -6,6 +6,7 @@ import Button from "../components/atoms/Button";
 import Input from "../components/atoms/Input";
 import { loginUser } from "../redux/actions/userActions";
 import Loading from "./Loading";
+import { onLogin } from "../redux/managers/dataManager";
 
 class Login extends Component {
   constructor(props) {
@@ -46,23 +47,68 @@ class Login extends Component {
     return true;
   };
 
-  loginAccount = async () => {
+  handleLogin = async () => {
     try {
       const { dispatch } = this.props;
       const { username, password } = this.state;
+      
+      if (!username || !password) {
+        return this.setState({
+          username_error: !username ? "Username is required" : "",
+          password_error: !password ? "Password is required" : "",
+        });
+      }
+
       const body = {
         username: username.trim(),
-        password: password.trim(),
+        password: password,
       };
-      this.setState({ loading: true, error: null });
+
+      this.setState({ loading: true, username_error: "", password_error: "" });
+      
       const result = await dispatch(loginUser(body));
-      // console.log("login result", result);
-      await this.handleLoginResult(result);
+      
+      if (result.error) {
+        console.error("Login error:", result.error);
+        return this.setState({
+          username_error: result.error.message || "Login failed",
+          password_error: "",
+          loading: false,
+        });
+      }
+
+      console.log("Login successful:", result.payload);
+      
+      await dispatch(onLogin());
+      
+      window.location.href = "/hq"; 
+      
     } catch (error) {
-      console.log(error);
-      this.setState({ loading: false, error });
+      console.error("Login error:", error);
+      this.setState({
+        username_error: "Login failed. Please try again.",
+        loading: false,
+      });
     }
   };
+
+  // loginAccount = async () => {
+  //   try {
+  //     const { dispatch } = this.props;
+  //     const { username, password } = this.state;
+  //     const body = {
+  //       username: username.trim(),
+  //       password: password.trim(),
+  //     };
+  //     this.setState({ loading: true, error: null });
+  //     const result = await dispatch(loginUser(body));
+  //     // console.log("login result", result);
+  //     await this.handleLoginResult(result);
+  //   } catch (error) {
+  //     console.log(error);
+  //     this.setState({ loading: false, error });
+  //   }
+  // };
 
   handleLoginResult = (result) => {
     const { history } = this.props;
