@@ -1,35 +1,15 @@
 const sgMail = require("@sendgrid/mail");
 const Token = require("../models/token.model");
 const { createConnection } = require("./connection");
-const envValidator = require("./envValidator");
 const crypto = require("crypto");
 
 const sendVerificationEmail = async (userID, userEmail) => {
   try {
-    envValidator.validateRequired();
-
-    const { SENDGRID_API_KEY, EMAIL_LINK_URL, LOCALHOST_EMAIL, SERVER_URL } = process.env;
-
-    // Better API key validation
-    if (!SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY environment variable is missing');
-    }
-
-    if (!SENDGRID_API_KEY.startsWith('SG.')) {
-      throw new Error('Invalid SendGrid API key format');
-    }
-
-    if (!EMAIL_LINK_URL) {
-      throw new Error('EMAIL_LINK_URL environment variable is missing');
-    }
-
-    if (!SERVER_URL) {
-      throw new Error('SERVER_URL environment variable is missing');
-    }
+    const { SENDGRID_API_KEY, EMAIL_LINK_URL, LOCALHOST_EMAIL } = process.env;
 
     // Create Token
     await createConnection();
-    const tokenDoc = await Token.findOneAndUpdate(
+    const { token } = await Token.findOneAndUpdate(
       { userID },
       {
         userID,
@@ -45,10 +25,7 @@ const sendVerificationEmail = async (userID, userEmail) => {
 
     console.log("userEmail is", userEmail);
 
-    // Set API key before creating message
-    sgMail.setApiKey(SENDGRID_API_KEY);
-
-    // ✅ YOUR EXACT HTML TEMPLATE
+    // Professional HTML Email Template
     const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
@@ -201,13 +178,15 @@ const sendVerificationEmail = async (userID, userEmail) => {
                 <p>Welcome to Mission: G.A.I.A.! We're excited to have you join our community of explorers and innovators.</p>
                 <p>To activate your account and start your adventure, please verify your email address by clicking the button below:</p>
                 
-                <a href="${EMAIL_LINK_URL}${tokenDoc.token}" class="verify-button">
+                <a href="${EMAIL_LINK_URL + token}" class="verify-button">
                     Verify My Account
                 </a>
                 
                 <div class="alternative-link">
                     <p><strong>Button not working?</strong> Copy and paste this link into your browser:</p>
-                    <a href="${EMAIL_LINK_URL}${tokenDoc.token}">${EMAIL_LINK_URL}${tokenDoc.token}</a>
+                    <a href="${EMAIL_LINK_URL + token}">${
+      EMAIL_LINK_URL + token
+    }</a>
                 </div>
                 
                 <div class="security-notice">
@@ -226,20 +205,22 @@ const sendVerificationEmail = async (userID, userEmail) => {
     </html>
     `;
 
-    // Create the email message
+    // Send email
+    sgMail.setApiKey(SENDGRID_API_KEY);
     const msg = {
-      to: LOCALHOST_EMAIL === "true" ? SERVER_URL : userEmail,
-      from: {
-        email: SERVER_URL,
-        name: "Mission G.A.I.A."
-      },
-      subject: "Mission: G.A.I.A. Email Verification - Your Adventure Awaits! 🚀",
+      to:
+        LOCALHOST_EMAIL === "true"
+          ? process.env.SERVER_URL
+          : userEmail || process.env.SERVER_URL,
+      from: process.env.SERVER_URL,
+      subject:
+        "Mission: G.A.I.A. Email Verification - Your Adventure Awaits! 🚀",
       text: `Welcome to Mission: G.A.I.A.! 
 
 Are you ready to begin your adventure? 
 
 To activate your account, please click the following link to verify your email address:
-${EMAIL_LINK_URL}${tokenDoc.token}
+${EMAIL_LINK_URL + token}
 
 This verification link will expire in 24 hours for your security.
 
@@ -247,7 +228,7 @@ If you didn't create an account with Mission: G.A.I.A., please ignore this email
 
 Welcome aboard!
 The Mission: G.A.I.A. Team`,
-      html: htmlTemplate, // ✅ YOUR EXACT TEMPLATE NOW PROPERLY INTEGRATED
+      html: htmlTemplate,
       tracking_settings: {
         click_tracking: {
           enable: false,
@@ -255,27 +236,14 @@ The Mission: G.A.I.A. Team`,
       },
     };
 
-    // Send the email
-    const result = await sgMail.send(msg);
-    console.log('Email sent successfully:', result[0].statusCode);
-    return result;
-
+    console.log("sending email to", msg.to);
+    return await sgMail.send(msg);
   } catch (error) {
-    // Enhanced error logging
-    console.error('Email Error:', {
-      message: error.message,
-      code: error.code,
-      response: error.response?.body || 'No response body'
-    });
-
-    // If it's a SendGrid authentication error, provide specific guidance
-    if (error.code === 401 || error.message.includes('Unauthorized')) {
-      throw new Error('Email service configuration error: Invalid API key. Please check SENDGRID_API_KEY in environment variables.');
+    console.error("error occured", error);
+    if (error.response) {
+      console.error("error:", error.response.body);
     }
-
-    // Sanitize other errors
-    const sanitizedError = envValidator.getSanitizedError(error, 'Email service error');
-    throw new Error(sanitizedError);
+    throw error;
   }
 };
 
