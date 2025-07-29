@@ -59,19 +59,45 @@ const secureQueryMiddleware = (model) => {
   };
 
   const originalFindOneAndUpdate = model.findOneAndUpdate;
-  model.findOneAndUpdate = function(filter, update, options = {}) {
+  model.findOneAndUpdate = function(filter, update, options) {
     const safeFilter = DatabaseSecurity.sanitizeNoSQLInput(filter);
-    const safeUpdate = DatabaseSecurity.sanitizeNoSQLInput(update);
     
-    // Use the new createSafeUpdateOptions method instead of createSafeQueryOptions
+    // Smart sanitization: only sanitize if update contains user input
+    // Skip sanitization for trusted internal updates (like login timestamp updates)
+    let safeUpdate = update;
+    
+    // Only sanitize if the update object might contain user input
+    // We can detect this by checking if it contains complex user data vs simple system updates
+    const hasUserData = this._containsUserData(update);
+    if (hasUserData) {
+      safeUpdate = DatabaseSecurity.sanitizeNoSQLInput(update);
+    }
+    
     const safeOptions = DatabaseSecurity.createSafeUpdateOptions(options);
     
     return DatabaseSecurity.executeSafeQuery(
       () => originalFindOneAndUpdate.call(this, safeFilter, safeUpdate, safeOptions),
-      'findOneAndUpdate',
+      'findOneAndUpdate', 
       { model: model.modelName, filter: safeFilter }
     );
   };
+
+  // Helper method to detect if update contains user data
+  model._containsUserData = function(update) {
+    // If it's a simple $set with only system fields, don't sanitize
+    if (update.$set && Object.keys(update).length === 1) {
+      const setFields = Object.keys(update.$set);
+      const systemFields = ['lastLoginAt', 'refreshTokenHash', 'updatedAt', 'verified'];
+      const isOnlySystemFields = setFields.every(field => systemFields.includes(field));
+      
+      if (isOnlySystemFields) {
+        return false; // Don't sanitize system-only updates
+      }
+    }
+    
+    return true; // Sanitize everything else
+  };
+
 
   const originalAggregate = model.aggregate;
   model.aggregate = function(pipeline, options) {

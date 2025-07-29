@@ -5,7 +5,7 @@
 const mongoose = require('mongoose');
 
 class DatabaseSecurity {
-  
+
   /**
    * Sanitize input to prevent NoSQL injection
    * @param {any} input - Input to sanitize
@@ -16,34 +16,46 @@ class DatabaseSecurity {
       return input;
     }
 
+    // Handle primitive types
+    if (typeof input !== 'object') {
+      return input;
+    }
+
+    // Handle built-in JavaScript objects that should not be sanitized
+    if (input instanceof Date) {
+      return input; // Return Date objects as-is
+    }
+
+    if (input instanceof RegExp) {
+      return input; // Return RegExp objects as-is
+    }
+
     // Handle Mongoose ObjectId objects
     if (input && typeof input === 'object' && input.constructor && input.constructor.name === 'ObjectId') {
       return input; // Return ObjectId as-is
     }
 
-    if (typeof input === 'string') {
-      // Check if it's a valid ObjectId string
-      if (this.isValidObjectId(input)) {
-        return input; // Return valid ObjectId strings as-is
-      }
-      // Sanitize other strings
-      return input.replace(/[\$\.]/g, '');
+    // Handle Buffer objects
+    if (Buffer.isBuffer(input)) {
+      return input;
     }
 
+    // Handle arrays
     if (Array.isArray(input)) {
       return input.map(item => this.sanitizeNoSQLInput(item));
     }
 
-    if (typeof input === 'object') {
+    // Handle plain objects
+    if (typeof input === 'object' && input.constructor === Object) {
       const sanitized = {};
       for (const [key, value] of Object.entries(input)) {
         // Don't modify ObjectId-related fields
         if (key === '_id' || key.endsWith('ID') || key.endsWith('Id')) {
           sanitized[key] = value; // Keep ObjectId fields unchanged
         } else if (this.isDangerousOperator(key)) {
-          // Log potential injection attempt
+          // Log potential injection attempt but skip dangerous operators
           console.warn('Potentially dangerous operator detected:', key);
-          continue; // Skip dangerous operators
+          continue;
         } else {
           sanitized[key] = this.sanitizeNoSQLInput(value);
         }
@@ -51,6 +63,7 @@ class DatabaseSecurity {
       return sanitized;
     }
 
+    // For other object types (like function constructors), return as-is
     return input;
   }
 
@@ -60,39 +73,57 @@ class DatabaseSecurity {
    * @returns {boolean} - True if dangerous
    */
   static isDangerousOperator(key) {
-    // Dangerous operators that should be blocked
-    const dangerousOperators = [
-      '$where', '$expr', '$function', '$accumulator', '$reduce',
-      '$map', '$filter', '$switch', '$cond', '$ifNull', '$let',
-      '$addFields', '$project', '$replaceWith', '$replaceRoot',
-      '$unwind', '$bucket', '$bucketAuto', '$collStats', '$count',
-      '$facet', '$geoNear', '$graphLookup', '$group', '$indexStats',
-      '$limit', '$lookup', '$match', '$merge', '$out', '$redact',
-      '$sample', '$skip', '$sort', '$sortByCount', '$unionWith',
-      '$currentOp', '$listLocalSessions', '$listSessions',
-      '$planCacheStats', '$indexStats'
-    ];
-    
+    // If it doesn't start with $, it's not an operator
+    if (!key.startsWith('$')) {
+      return false;
+    }
+
     // Allow safe update operators
     const safeUpdateOperators = [
       '$set', '$unset', '$inc', '$mul', '$rename', '$min', '$max',
       '$currentDate', '$addToSet', '$pop', '$pull', '$push', '$pullAll'
     ];
-    
-    // Allow safe query operators
+
+    // Allow safe query operators  
     const safeQueryOperators = [
       '$or', '$and', '$nor', '$not',
       '$eq', '$ne', '$gt', '$gte', '$lt', '$lte',
       '$in', '$nin', '$exists', '$type', '$size',
-      '$all', '$elemMatch', '$regex', '$text'
+      '$all', '$elemMatch', '$regex', '$text', '$mod'
     ];
-    
-    // Allow safe operators
-    if (safeUpdateOperators.includes(key) || safeQueryOperators.includes(key)) {
+
+    // Allow safe aggregation operators that might be used in updates
+    const safeAggregationOperators = [
+      '$match', '$group', '$sort', '$limit', '$skip', '$project'
+    ];
+
+    // Combine all safe operators
+    const safeOperators = [
+      ...safeUpdateOperators,
+      ...safeQueryOperators,
+      ...safeAggregationOperators
+    ];
+
+    // If it's in the safe list, it's not dangerous
+    if (safeOperators.includes(key)) {
       return false;
     }
+
+    // Dangerous operators that should be blocked
+    const dangerousOperators = [
+      '$where', '$expr', '$function', '$accumulator', '$reduce',
+      '$map', '$filter', '$switch', '$cond', '$ifNull', '$let',
+      '$addFields', '$replaceWith', '$replaceRoot',
+      '$unwind', '$bucket', '$bucketAuto', '$collStats', '$count',
+      '$facet', '$geoNear', '$graphLookup', '$indexStats',
+      '$lookup', '$merge', '$out', '$redact',
+      '$sample', '$sortByCount', '$unionWith',
+      '$currentOp', '$listLocalSessions', '$listSessions',
+      '$planCacheStats'
+    ];
+
     
-    return dangerousOperators.includes(key) || key.startsWith('$');
+    return dangerousOperators.includes(key);
   }
 
   /**

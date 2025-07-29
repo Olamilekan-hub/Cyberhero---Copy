@@ -1,12 +1,13 @@
 import { Component } from "react";
 import { withRouter } from "react-router-dom";
+import { connect } from "react-redux";
 import styled from "styled-components";
 import bg from "../assets/signup.png";
 import Button from "../components/atoms/Button";
 import Input from "../components/atoms/Input";
 import { loginUser } from "../redux/actions/userActions";
-import Loading from "./Loading";
 import { onLogin } from "../redux/managers/dataManager";
+import Loading from "./Loading";
 
 class Login extends Component {
   constructor(props) {
@@ -15,74 +16,86 @@ class Login extends Component {
       username: "",
       password: "",
       loading: false,
-      error: null,
+      username_error: "",
+      password_error: "",
     };
   }
 
   handleInputChange = (name, value) => {
     this.setState({
       [name]: value,
+      [`${name}_error`]: "", 
     });
   };
 
   submit = () => {
     if (!this.validation()) {
-      // console.log("validation error");
       return;
     }
-
     this.loginAccount();
   };
 
   validation = () => {
     const { username, password } = this.state;
+    let hasError = false;
 
-    if (!username || !password) {
-      this.setState({
-        error: "Enter username and password",
-      });
-      return false;
+    if (!username.trim()) {
+      this.setState({ username_error: "Username is required" });
+      hasError = true;
     }
 
-    return true;
+    if (!password.trim()) {
+      this.setState({ password_error: "Password is required" });
+      hasError = true;
+    }
+
+    return !hasError;
   };
 
-  handleLogin = async () => {
+  loginAccount = async () => {
     try {
       const { dispatch } = this.props;
       const { username, password } = this.state;
       
-      if (!username || !password) {
-        return this.setState({
-          username_error: !username ? "Username is required" : "",
-          password_error: !password ? "Password is required" : "",
-        });
-      }
-
       const body = {
         username: username.trim(),
-        password: password,
+        password: password.trim(),
       };
 
       this.setState({ loading: true, username_error: "", password_error: "" });
       
       const result = await dispatch(loginUser(body));
+      console.log("Login result:", result);
       
       if (result.error) {
-        console.error("Login error:", result.error);
-        return this.setState({
+        // Handle login errors
+        console.error("Login failed:", result.error);
+        this.setState({
           username_error: result.error.message || "Login failed",
-          password_error: "",
+          loading: false,
+        });
+        return;
+      }
+
+      // Login successful - result.payload contains { user, tokens, message }
+      if (result.payload && result.payload.tokens) {
+        console.log("Login successful, loading user data...");
+        
+        // Trigger data loading
+        await dispatch(onLogin());
+        
+        // Redirect to dashboard
+        this.props.history.push("/hq");
+        
+      } else {
+        // Handle unexpected response structure
+        console.error("Unexpected login response:", result.payload);
+        this.setState({
+          username_error: "Login response error. Please try again.",
           loading: false,
         });
       }
 
-      console.log("Login successful:", result.payload);
-      
-      await dispatch(onLogin());
-      
-      window.location.href = "/hq"; 
-      
     } catch (error) {
       console.error("Login error:", error);
       this.setState({
@@ -92,39 +105,9 @@ class Login extends Component {
     }
   };
 
-  // loginAccount = async () => {
-  //   try {
-  //     const { dispatch } = this.props;
-  //     const { username, password } = this.state;
-  //     const body = {
-  //       username: username.trim(),
-  //       password: password.trim(),
-  //     };
-  //     this.setState({ loading: true, error: null });
-  //     const result = await dispatch(loginUser(body));
-  //     // console.log("login result", result);
-  //     await this.handleLoginResult(result);
-  //   } catch (error) {
-  //     console.log(error);
-  //     this.setState({ loading: false, error });
-  //   }
-  // };
-
-  handleLoginResult = (result) => {
-    const { history } = this.props;
-    switch (true) {
-      case !!result.error:
-        throw result.error.message;
-      case !!result.payload.email:
-        return history.push("/register");
-      default:
-        return;
-    }
-  };
-
   render() {
-    const { username, password, loading, error } = this.state;
-    // console.log(this.state);
+    const { username, password, loading, username_error, password_error } = this.state;
+    
     return (
       <>
         {loading && <Loading />}
@@ -135,6 +118,7 @@ class Login extends Component {
               name="username"
               value={username}
               handleOnChange={this.handleInputChange}
+              errorText={username_error}
             />
             <Input
               title="Password"
@@ -142,11 +126,15 @@ class Login extends Component {
               type="password"
               value={password}
               handleOnChange={this.handleInputChange}
-              errorText={error}
+              errorText={password_error}
             />
 
             <ButtonContainer>
-              <Button text="Sign in" handleOnClick={this.submit} />
+              <Button 
+                text="Sign in" 
+                handleOnClick={this.submit}
+                disabled={loading}
+              />
             </ButtonContainer>
           </InnerContainer>
         </MainContainer>
@@ -185,4 +173,9 @@ const ButtonContainer = styled.div`
   margin-top: 50px;
 `;
 
-export default withRouter(Login);
+// Connect to Redux
+const mapStateToProps = (state) => ({
+  user: state.user,
+});
+
+export default connect(mapStateToProps)(withRouter(Login));

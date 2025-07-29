@@ -95,9 +95,9 @@ const loginHandler = async (event, context) => {
     
     // Store refresh token hash and update login time securely
     await DatabaseSecurity.executeSafeQuery(
-      () => User.findOneAndUpdate(
-        { _id: user._id },
-        { 
+      () => {
+        // Create the update object with proper Date - don't sanitize this since we control it
+        const updateData = { 
           $set: { 
             lastLoginAt: new Date(),
             refreshTokenHash: require('crypto')
@@ -105,12 +105,21 @@ const loginHandler = async (event, context) => {
               .update(tokens.refreshToken)
               .digest('hex')
           }
-        },
-        { new: true }
-      ),
+        };
+
+        // Only sanitize the filter, not the update data
+        const safeFilter = DatabaseSecurity.sanitizeNoSQLInput({ _id: user._id });
+        
+        return User.findOneAndUpdate(
+          safeFilter,
+          updateData,  // Don't sanitize this - we control this data
+          { new: true }
+        );
+      },
       'user_login_update',
       { userId: user._id }
     );
+
     
     return createSecureResponse(200, {
       message: "Login successful",
