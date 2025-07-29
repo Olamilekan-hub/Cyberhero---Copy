@@ -73,6 +73,18 @@ class DatabaseSecurity {
       '$unionWith'
     ];
     
+    // Allow safe query operators
+    const safeOperators = [
+      '$or', '$and', '$nor', '$not',
+      '$eq', '$ne', '$gt', '$gte', '$lt', '$lte',
+      '$in', '$nin', '$exists', '$type', '$size',
+      '$all', '$elemMatch'
+    ];
+    
+    if (safeOperators.includes(key)) {
+      return false;
+    }
+    
     return dangerousOperators.includes(key) || key.startsWith('$');
   }
 

@@ -20,17 +20,27 @@ const secureQueryMiddleware = (model) => {
   };
 
   const originalFindOne = model.findOne;
-  model.findOne = function(filter = {}, projection, options) {
-    const safeFilter = DatabaseSecurity.sanitizeNoSQLInput(filter);
-    const safeOptions = DatabaseSecurity.createSafeQueryOptions(options);
-    const safeProjection = projection || DatabaseSecurity.getDefaultProjection();
-    
-    return DatabaseSecurity.executeSafeQuery(
-      () => originalFindOne.call(this, safeFilter, safeProjection, safeOptions),
-      'findOne',
-      { model: model.modelName, filter: safeFilter }
-    );
-  };
+    model.findOne = function(filter = {}, projection, options) {
+      const safeFilter = DatabaseSecurity.sanitizeNoSQLInput(filter);
+      const safeOptions = DatabaseSecurity.createSafeQueryOptions(options);
+      
+      // Handle password inclusion for authentication
+      let safeProjection;
+      if (projection && typeof projection === 'object' && projection.password === 1) {
+        // If password is explicitly requested, allow it
+        safeProjection = projection;
+      } else {
+        // Otherwise use default secure projection
+        safeProjection = projection || DatabaseSecurity.getDefaultProjection();
+      }
+      
+      return DatabaseSecurity.executeSafeQuery(
+        () => originalFindOne.call(this, safeFilter, safeProjection, safeOptions),
+        'findOne',
+        { model: model.modelName, filter: safeFilter }
+      );
+    };
+
 
   const originalFindById = model.findById;
   model.findById = function(id, projection, options) {

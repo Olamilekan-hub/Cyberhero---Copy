@@ -21,7 +21,7 @@ export const constraints = {
     },
     format: {
       // Strong password pattern: at least 8 chars, 1 upper, 1 lower, 1 digit, 1 special
-      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]",
+      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
       message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
     },
   },

@@ -38,7 +38,22 @@ const loginHandler = async (event, context) => {
 
     // Use secure user lookup with password field
     const user = await DatabaseSecurity.executeSafeQuery(
-      () => User.findByCredentials(sanitizedData.username, true),
+      async () => {
+        const query = {
+          $or: [
+            { email: sanitizedData.username },
+            { username: sanitizedData.username }
+          ]
+        };
+        
+        // Use collection directly to bypass middleware
+        const rawUser = await User.collection.findOne(DatabaseSecurity.sanitizeNoSQLInput(query));
+        
+        if (!rawUser) return null;
+        
+        // Convert to Mongoose document to maintain compatibility
+        return new User(rawUser);
+      },
       'user_login_lookup',
       { username: sanitizedData.username }
     );

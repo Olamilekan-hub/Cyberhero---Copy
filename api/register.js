@@ -49,16 +49,20 @@ const registerHandler = async (event, context) => {
         message: `Input validation failed: ${error.message}` 
       });
     }
-
+6 
     await createConnection();
 
     // Make sure this account doesn't already exist
-    const existingUser = await User.findOne({
-      $or: [
-        { email: sanitizedData.email }, 
-        { username: sanitizedData.username }
-      ],
-    }).collation({ locale: "en", strength: 2 });
+  //   const existingUser = await User.findOne({
+  //   $or: [
+  //     { email: sanitizedData.email }, 
+  //     { username: sanitizedData.username }
+  //   ],
+  // }, null, { 
+  //   collation: { locale: "en", strength: 2 } 
+  // });
+  const existingUser = await User.findByCredentials(sanitizedData.email) || 
+                    await User.findByCredentials(sanitizedData.username);
 
     // Check if the user already exists
     if (existingUser) {

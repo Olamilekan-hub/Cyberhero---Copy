@@ -102,8 +102,27 @@ userSchema.statics.findByCredentials = async function(identifier, includePasswor
     ]
   };
   
-  const projection = includePassword ? '+password' : DatabaseSecurity.getDefaultProjection();
-  return this.findOne(DatabaseSecurity.sanitizeNoSQLInput(query), projection);
+  const sanitizedQuery = DatabaseSecurity.sanitizeNoSQLInput(query);
+  
+  if (includePassword) {
+    // Create a custom projection that includes password
+    const projection = {
+      username: 1,
+      email: 1,
+      password: 1,
+      verified: 1,
+      _id: 1,
+      lastLoginAt: 1,
+      createdAt: 1,
+      updatedAt: 1
+    };
+    
+    // Execute the query with explicit password inclusion
+    return await this.findOne(sanitizedQuery, projection);
+  } else {
+    // Use the secure method for normal queries
+    return this.findOne(sanitizedQuery, DatabaseSecurity.getDefaultProjection());
+  }
 };
 
 userSchema.statics.createSafely = async function(userData) {
