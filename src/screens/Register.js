@@ -91,16 +91,22 @@ class Register extends Component {
     try {
       const { dispatch } = this.props;
       const { username, email, password, isSubscribed } = this.state;
+      
       const body = {
         username: username.trim(),
         password: password.trim(),
         email: email.trim(),
         isSubscribed: isSubscribed,
       };
-      console.log("body: ", body);
-      this.setState({ loading: true });
+      
+      console.log("Registration body: ", body);
+      this.setState({ loading: true, username_error: null, email_error: null });
+      
       const result = await dispatch(registerUser(body));
+      console.log("Registration result: ", result); 
+      
       if (result.error) {
+        console.log("Registration error: ", result.error);
         const field = this.getErrorField(result.error.message);
         return this.setState({
           [field]: result.error.message,
@@ -108,43 +114,59 @@ class Register extends Component {
         });
       }
 
+      const registeredEmail = result.payload?.email || email;
+      console.log("Registration successful, email: ", registeredEmail);
+      
       this.setState({
         loading: false,
-        verificationEmail: result.payload?.email,
+        verificationEmail: registeredEmail,
+        password: "",
+        password2: "",
       });
+      
     } catch (error) {
-      console.log("error:", error);
-      // this.setState({ loading: false, username_error: error });
+      console.error("Registration catch error:", error);
+      this.setState({ 
+        loading: false, 
+        username_error: "Registration failed. Please try again." 
+      });
     }
   };
 
   getErrorField = (error) => {
-    if (error.includes("Username")) return "username_error";
-
-    return "email_error";
+    if (error.includes("Username") || error.includes("username")) {
+      return "username_error";
+    }
+    if (error.includes("Email") || error.includes("email")) {
+      return "email_error";
+    }
+    return "username_error"; 
   };
 
   resendVerification = async () => {
     try {
       const { dispatch } = this.props;
       const { email, username } = this.state;
-      const body = {
-        email,
-        username,
-      };
-
-      this.setState({ loading: true });
+      
+      const body = { email, username };
+      
+      this.setState({ loading: true, resend_error: null });
       const result = await dispatch(resendVerificationEmail(body));
-      // console.log(result);
+      
       if (result.error) {
-        throw result.error.message;
+        throw new Error(result.error.message);
       }
-      alert("Verification email resent successfully");
+      
+      alert("Verification email resent successfully! Please check your inbox.");
       this.setState({ loading: false });
+      
     } catch (error) {
-      console.log(error);
-      alert(`Verification email error: ${error}`);
-      this.setState({ loading: false, resend_error: error });
+      console.error("Resend error:", error);
+      alert(`Verification email error: ${error.message}`);
+      this.setState({ 
+        loading: false, 
+        resend_error: error.message 
+      });
     }
   };
 

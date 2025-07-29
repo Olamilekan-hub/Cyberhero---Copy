@@ -21,15 +21,13 @@ export const PostRequest = async (url, body) => {
 
 const statusCheck = async (response) => {
   try {
-    // console.log(response);
     const res = await response.json();
-    // console.log(res);
-    if (response.status !== 200)
+    if (response.status !== 200 && response.status !== 201) {
       throw new Error(res.message ? res.message : res);
+    }
 
     return res.payload ? res.payload : res;
   } catch (error) {
-    // console.log("in statusCheck", error);
     throw error;
   }
 };
