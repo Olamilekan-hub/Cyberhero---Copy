@@ -7,35 +7,51 @@ const mongoose = require('mongoose');
 class DatabaseSecurity {
   
   /**
-   * Sanitize user input to prevent NoSQL injection
-   * @param {any} payload - User input to sanitize
-   * @returns {any} - Sanitized payload
+   * Sanitize input to prevent NoSQL injection
+   * @param {any} input - Input to sanitize
+   * @returns {any} - Sanitized input
    */
-  static sanitizeNoSQLInput(payload) {
-    if (payload && typeof payload === 'object') {
-      // Handle arrays
-      if (Array.isArray(payload)) {
-        return payload.map(item => this.sanitizeNoSQLInput(item));
+  static sanitizeNoSQLInput(input) {
+    if (input === null || input === undefined) {
+      return input;
+    }
+
+    // Handle Mongoose ObjectId objects
+    if (input && typeof input === 'object' && input.constructor && input.constructor.name === 'ObjectId') {
+      return input; // Return ObjectId as-is
+    }
+
+    if (typeof input === 'string') {
+      // Check if it's a valid ObjectId string
+      if (this.isValidObjectId(input)) {
+        return input; // Return valid ObjectId strings as-is
       }
-      
-      // Handle objects
+      // Sanitize other strings
+      return input.replace(/[\$\.]/g, '');
+    }
+
+    if (Array.isArray(input)) {
+      return input.map(item => this.sanitizeNoSQLInput(item));
+    }
+
+    if (typeof input === 'object') {
       const sanitized = {};
-      for (const [key, value] of Object.entries(payload)) {
-        // Remove dangerous operators
-        if (this.isDangerousOperator(key)) {
-          continue;
-        }
-        // Recursively sanitize nested objects
-        if (typeof value === 'object' && value !== null) {
-          sanitized[key] = this.sanitizeNoSQLInput(value);
+      for (const [key, value] of Object.entries(input)) {
+        // Don't modify ObjectId-related fields
+        if (key === '_id' || key.endsWith('ID') || key.endsWith('Id')) {
+          sanitized[key] = value; // Keep ObjectId fields unchanged
+        } else if (this.isDangerousOperator(key)) {
+          // Log potential injection attempt
+          console.warn('Potentially dangerous operator detected:', key);
+          continue; // Skip dangerous operators
         } else {
-          sanitized[key] = value;
+          sanitized[key] = this.sanitizeNoSQLInput(value);
         }
       }
       return sanitized;
     }
-    
-    return payload;
+
+    return input;
   }
 
   /**

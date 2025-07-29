@@ -104,51 +104,48 @@ const registerHandler = async (event, context) => {
       userID: newUser._id,
     });
 
-    // Send email
-    await sendVerificationEmail(newUser._id, newUser.email);
-
-    if (sanitizedData.isSubscribed) {
-      console.log("Adding to Mailchimp with enhanced data");
-
-      // Add subscriber with more detailed information
-      const mailchimpResult = await addSubscriber(
-        newUser.email,
-        sanitizedData.username, // firstName field
-        "", // lastName (can be added to registration form)
-        ["new-user", "mission-gaia"] // default tags
-      );
-
-      if (mailchimpResult && !mailchimpResult.error) {
-        const additionalTags = [];
-
-        if (sanitizedData.preferences?.newFeatures)
-          additionalTags.push("new-features");
-        if (sanitizedData.preferences?.contentUpdates)
-          additionalTags.push("content-updates");
-        if (sanitizedData.preferences?.announcements)
-          additionalTags.push("announcements");
-
-        // Add age-appropriate content tags
-        if (sanitizedData.age) {
-          if (sanitizedData.age >= 9 && sanitizedData.age <= 12) {
-            additionalTags.push("target-age");
-          }
+    // Try to send verification email, but don't fail registration if email fails
+    try {
+      await sendVerificationEmail(newUser._id, newUser.email);
+      
+      return createSecureResponse(201, {
+        message: "Registration successful! Please check your email to verify your account.",
+        user: {
+          id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          verified: newUser.verified
         }
-
-        if (additionalTags.length > 0) {
-          await addTagsToSubscriber(newUser.email, additionalTags);
-        }
-      }
+      });
+    } catch (emailError) {
+      console.error('Email sending failed but user was created:', emailError.message);
+      
+      // Return success but inform user about email issue
+      return createSecureResponse(201, {
+        message: "Registration successful! However, there was an issue sending the verification email. Please contact support or try logging in.",
+        user: {
+          id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          verified: newUser.verified
+        },
+        emailWarning: "Verification email could not be sent. You may need to verify manually."
+      });
     }
 
-    return createSecureResponse(200, {
-      message: "success",
-      email: newUser.email,
-    });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', DatabaseSecurity.sanitizeDBError(error));
+    
+    // Handle specific error types
+    if (error.code === 11000) {
+      const field = error.keyPattern?.email ? 'email' : 'username';
+      return createSecureResponse(400, { 
+        message: `This ${field} is already registered. Please try logging in instead.` 
+      });
+    }
+    
     return createSecureResponse(500, { 
-      message: "Internal server error" 
+      message: "Registration failed. Please try again." 
     });
   }
 };

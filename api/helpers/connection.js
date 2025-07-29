@@ -21,6 +21,10 @@ const createConnection = async () => {
   const secureConnectionOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    // ADD THESE LINES TO FIX DEPRECATION:
+    useFindAndModify: false,  // Fix findOneAndUpdate deprecation
+    useCreateIndex: true,     // Fix index creation deprecation
+    
     autoIndex: false,
     
     // Connection pool settings
@@ -33,12 +37,9 @@ const createConnection = async () => {
     retryWrites: true,
     retryReads: true,
     
-    // Remove deprecated options:
-    // snapshot: false - REMOVE THIS LINE
-    
-    // Additional performance/security options
-    bufferMaxEntries: 0, // Disable mongoose buffering
-    bufferCommands: false // Disable mongoose buffering
+    // Additional performance options
+    bufferMaxEntries: 0,
+    bufferCommands: false
   };
 
     const db = await mongoose.connect(process.env.DB_URL, secureConnectionOptions);
