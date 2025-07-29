@@ -98,7 +98,7 @@ class DatabaseSecurity {
            String(new mongoose.Types.ObjectId(id)) === id;
   }
 
-  /**
+    /**
    * Create safe query options with limits
    * @param {Object} options - Query options
    * @returns {Object} - Safe query options
@@ -113,7 +113,7 @@ class DatabaseSecurity {
       
       // Disable potentially dangerous options
       explain: false,
-      snapshot: false,
+      // Remove snapshot option - it's deprecated
       
       // Safe projection (exclude sensitive fields by default)
       select: options.select || this.getDefaultProjection(),
@@ -337,6 +337,46 @@ class DatabaseSecurity {
       issues
     };
   }
+
+  
+  /**
+   * Create safe options for update operations (excludes limit which is not supported)
+   * @param {Object} options - Query options
+   * @returns {Object} - Safe update options
+   */
+  static createSafeUpdateOptions(options = {}) {
+    const safeOptions = {
+      // Add timeout to prevent long-running operations
+      maxTimeMS: options.maxTimeMS || 10000, // 10 seconds max
+      
+      // Disable potentially dangerous options
+      explain: false,
+      
+      // Safe population
+      populate: this.sanitizePopulateOptions(options.populate),
+      
+      // Safe sorting (for operations that support it)
+      sort: this.sanitizeSortOptions(options.sort),
+      
+      // Common update operation options
+      new: options.new !== undefined ? options.new : false,
+      upsert: options.upsert || false,
+      runValidators: options.runValidators !== undefined ? options.runValidators : true,
+      context: options.context || 'query',
+      setDefaultsOnInsert: options.setDefaultsOnInsert || false,
+      omitUndefined: options.omitUndefined || false
+    };
+
+    // Remove any undefined values
+    Object.keys(safeOptions).forEach(key => {
+      if (safeOptions[key] === undefined) {
+        delete safeOptions[key];
+      }
+    });
+
+    return safeOptions;
+  }
+
 }
 
 module.exports = DatabaseSecurity;

@@ -19,19 +19,27 @@ const createConnection = async () => {
     }
 
   const secureConnectionOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  // Remove these deprecated options:
-  // useCreateIndex: true,
-  // useFindAndModify: false,
-  autoIndex: false,
-  
-  // Rest of your security settings...
-  maxPoolSize: 10, 
-  serverSelectionTimeoutMS: 5000, 
-  socketTimeoutMS: 45000, 
-  // ... other options
-};
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    autoIndex: false,
+    
+    // Connection pool settings
+    maxPoolSize: 10, 
+    serverSelectionTimeoutMS: 5000, 
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000,
+    
+    // Security settings
+    retryWrites: true,
+    retryReads: true,
+    
+    // Remove deprecated options:
+    // snapshot: false - REMOVE THIS LINE
+    
+    // Additional performance/security options
+    bufferMaxEntries: 0, // Disable mongoose buffering
+    bufferCommands: false // Disable mongoose buffering
+  };
 
     const db = await mongoose.connect(process.env.DB_URL, secureConnectionOptions);
     

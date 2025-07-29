@@ -59,15 +59,12 @@ const secureQueryMiddleware = (model) => {
   };
 
   const originalFindOneAndUpdate = model.findOneAndUpdate;
-  model.findOneAndUpdate = function(filter, update, options) {
+  model.findOneAndUpdate = function(filter, update, options = {}) {
     const safeFilter = DatabaseSecurity.sanitizeNoSQLInput(filter);
     const safeUpdate = DatabaseSecurity.sanitizeNoSQLInput(update);
-    const safeOptions = {
-      ...DatabaseSecurity.createSafeQueryOptions(options),
-      new: options?.new ?? true,
-      runValidators: true,
-      context: 'query'
-    };
+    
+    // Use the new createSafeUpdateOptions method instead of createSafeQueryOptions
+    const safeOptions = DatabaseSecurity.createSafeUpdateOptions(options);
     
     return DatabaseSecurity.executeSafeQuery(
       () => originalFindOneAndUpdate.call(this, safeFilter, safeUpdate, safeOptions),
