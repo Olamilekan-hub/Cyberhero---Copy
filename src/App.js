@@ -14,6 +14,7 @@ import Nav from "./components/sections/Nav";
 import logo from "./assets/logo.png";
 // Screens //
 import Home from "./screens/Home";
+import NewHome from "./screens/NewHome";
 import About from "./screens/About";
 import TermsOfUsage from "./screens/TermsOfUsage";
 import Register from "./screens/Register";
@@ -23,8 +24,102 @@ import EmailVerify from "./screens/EmailVerify";
 import Mission from "./screens/Mission";
 import ScrollToTop from "./screens/ScrollToTop";
 import Profile from "./screens/Profile";
+import NotAvailable from "./screens/NotAvailable";
 import CartModal from "./components/containers/CartModal";
 import { SEO } from "./components/atoms/SEO";
+
+// Footer component
+function FooterComponent() {
+  return (
+    <Footer>
+      <FooterRow>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <FooterLogo src={logo} alt="Mission GAIA Logo" />
+          {/* <span><strong>Mission: G.A.I.A.</strong></span> */}
+        </div>
+        <FooterLinks>
+          <a href="/about">About</a>
+          <a href="/terms">Terms</a>
+          <a href="mailto:hello@missiongaia.org">Contact</a>
+        </FooterLinks>
+      </FooterRow>
+      <FooterCopyright>
+        &copy; {new Date().getFullYear()} Mission: G.A.I.A. &mdash; All rights reserved.
+      </FooterCopyright>
+    </Footer>
+  );
+}
+
+const Footer = styled.footer`
+  width: 100vw;
+  background: #000;
+  color: #eaeaea;
+  padding: 36px 0 24px 0;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1rem;
+  font-family: 'Manrope', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
+
+  @media (max-width: 600px) {
+    font-size: 0.95rem;
+    padding: 24px 0 16px 0;
+  }
+`;
+const FooterRow = styled.div`
+  width: 90%;
+  max-width: 1700px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 12px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 12px;
+    width: 98%;
+  }
+`;
+const FooterLogo = styled.img`
+  height: 40px;
+  margin-right: 12px;
+  
+  @media (max-width: 768px) {
+  height: 35px;
+  }
+  
+  @media (max-width: 468px) {
+  height: 28px;
+  }
+`;
+const FooterLinks = styled.div`
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+
+  a {
+    color: #ffa726;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    &:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+  }
+`;
+const FooterCopyright = styled.div`
+  width: 90%;
+  max-width: 1200px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #aaa;
+  margin-top: 8px;
+`;
 
 function App(props) {
   const [cartOpen, setCartOpen] = useState(false);
@@ -135,12 +230,12 @@ function App(props) {
           <PrivateRoute path="/profile">
             <Profile />
           </PrivateRoute>
-          <PublicOnlyRoute path="/login">
-            <Login dispatch={dispatch} />
-          </PublicOnlyRoute>
-          <PublicOnlyRoute path="/register">
-            <Register dispatch={dispatch} verificationEmail={email} />
-          </PublicOnlyRoute>
+          <Route path="/login">
+            <NotAvailable />
+          </Route>
+          <Route path="/register">
+            <NotAvailable />
+          </Route>
           <PublicOnlyRoute path="/confirm">
             <EmailVerify dispatch={dispatch} history={history} />
           </PublicOnlyRoute>
@@ -150,9 +245,12 @@ function App(props) {
           <Route path="/terms">
             <TermsOfUsage />
           </Route>{" "}
-          <Route path="/">{token ? <HQ history={history} /> : <Home />}</Route>
-          <Route>{token ? <HQ history={history} /> : <Home />}</Route>
+          <Route path="/">{token ? <HQ history={history} /> : <NewHome />}</Route>
+          {/* <Route path="/">{token ? <HQ history={history} /> : <Home />}</Route> */}
+          <Route>{token ? <HQ history={history} /> : <NewHome />}</Route>
+          {/* <Route>{token ? <HQ history={history} /> : <Home />}</Route> */}
         </Switch>
+        <FooterComponent />
       </MainContainer>
     </Router>
   );

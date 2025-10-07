@@ -1,10 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap');
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Orbitron-Bold", "Segoe UI",
+  /* font-family: -apple-system, BlinkMacSystemFont, "Orbitron-Bold", "Segoe UI",
     "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    "Helvetica Neue", sans-serif; */
+  font-family: 'Manrope', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
   color: #fff;
   background-color: darkblue;
   letter-spacing: 1px;
@@ -27,6 +27,9 @@ code {
   src: local("Orbitron-Bold"),
     url(./assets/fonts/Orbitron-Bold.ttf) format("truetype");
 }
+h1, h2, h3 {
+  font-family: 'Manrope', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+}
 :root {
   /* If you change nav-height, update navHeight in constants.js */
   --nav-height: 80px;
@@ -43,4 +46,3 @@ code {
   --nav-color: rgba(127, 134, 236, 0.2);
   --nav-color-solid: var(--blue);
 }
-

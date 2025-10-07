@@ -1,423 +1,306 @@
 import { useState, useEffect } from "react";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import Button from "../atoms/Button";
-import {  AiOutlineShoppingCart } from "react-icons/ai";
-import { onLogout } from "../../redux/managers/authManager";
-import { navRoutes } from "../../constants/routes";
-import logo from "../../assets/logo.png";
-import arror_less from "../../assets/arrow_less.svg";
-import closeIcon from "../../assets/close.svg";
-import bar from "../../assets/bar.png";
-import SoundButton from "../atoms/SoundButton";
-const Nav = ({ history, signedIn, dispatch, cartTotal, toggleCart }) => {
-  const [open, toggleOpen] = useState(true);
-  const [account, setAccount] = useState(false);
-  const [activeRoute, setActiveRoute] = useState("/");
-  const filteredRoutes = navRoutes.filter((item) =>
-    signedIn ? !!item.private : !item.private
-  );
+import { FiMenu, FiX } from "react-icons/fi";
 
-  // Closes hamburger menu on location change, and sets Active nav route
-  // based on current pathname
-  useEffect(
-    () => {
-      if (open) {
-        toggleOpen(false);
+const Nav = () => {
+  const location = useLocation();
+  const activeRoute = location.pathname;
+  const navLinks = [
+    { text: "Home", path: "/" },
+    { text: "B.E.L.A.", path: "#bela" },
+    { text: "About us", path: "#about" },
+  ];
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Use both pageYOffset and scrollY for compatibility
+      const offset = window.pageYOffset || window.scrollY || 0;
+      if (offset > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
       }
-      // console.log(history.location);
-      if (history.location.pathname === "/") return setActiveRoute("/");
-      if (history.location.pathname === "/profile")
-        return setActiveRoute("/profile");
-      const homelessRoutes = filteredRoutes.filter((item) => item.path !== "/");
-      homelessRoutes.forEach(
-        (route) =>
-          history.location.pathname.includes(route.path) &&
-          setActiveRoute(route.path)
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [history.location]
-  );
-
-  const handleLogout = () => {
-    dispatch(onLogout(history));
-  };
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <StyledNav>
-      <InnerLinks open={open}>
-        {open && (
-          <SoundButton>
-            <IconButton onClick={() => toggleOpen(false)} close>
-              <img src={closeIcon} width={20} alt="" />
-            </IconButton>
-          </SoundButton>
-        )}
-        <LinkContainer>
-          {filteredRoutes.map((route, index) =>
-            route.text === "SHOP" ? (
-              <SoundButton>
-                <StyledA href={route.path} key={index} target="_blank">
-                  {route.text}
-                </StyledA>
-              </SoundButton>
-            ) : (
-              <SoundButton>
-                <StyledLink
-                  to={route.path}
-                  key={index}
-                  active={activeRoute === route.path ? 1 : 0}
+    <>
+      <StyledNav scrolled={scrolled}>
+        <LogoText>MISSION: G.A.I.A.</LogoText>
+        <RightSection>
+          <NavLinks className="desktop-nav">
+            {navLinks.map((link) => (
+              <NavLinkItem key={link.path}>
+                <StyledNavLink
+                  to={link.path}
+                  active={activeRoute === link.path ? 1 : 0}
                 >
-                  {route.text}
-                </StyledLink>
-              </SoundButton>
-            )
-          )}
-        </LinkContainer>
-        <SpecialLinkContainer>
-          {signedIn ? (
-            <>
-              <SoundButton>
-                <StyledLink
-                  to="/profile"
-                  active={activeRoute === "/profile" ? 1 : 0}
-                >
-                  PROFILE
-                </StyledLink>
-              </SoundButton>
-              <SoundButton>
-                <StyledLink to="/" onClick={handleLogout}>
-                  LOG OUT
-                </StyledLink>
-              </SoundButton>
-            </>
-          ) : (
-            <>
-              <SoundButton>
-                <StyledLink
-                  to="/login"
-                  active={activeRoute === "/login" ? 1 : 0}
-                >
-                  LOGIN
-                </StyledLink>
-              </SoundButton>
-              <SoundButton>
-                <StyledLink
-                  to="/register"
-                  active={activeRoute === "/register" ? 1 : 0}
-                >
-                  REGISTER
-                </StyledLink>
-              </SoundButton>
-            </>
-          )}
-        </SpecialLinkContainer>
-      </InnerLinks>
-      {!open && (
-        <>
-          <MobileCartButton onClick={toggleCart}>
-            <AiOutlineShoppingCart size={30} color="white" />
-            {<p>CART({cartTotal})</p>}
-          </MobileCartButton>
-          <SoundButton>
-            <IconButton onClick={() => toggleOpen(true)}>
-              <div>
-                <img src={bar} width={25} alt="" />
-              </div>
-            </IconButton>
-          </SoundButton>
-        </>
-      )}
-      <SoundButton>
-        <LogoContainer>
-          <a href="/">
-            <img src={logo} alt="Mission: G.A.I.A. Crest" />
-          </a>
-        </LogoContainer>
-      </SoundButton>
-      <ButtonContainer>
-        {signedIn ? (
-          <>
-            <AccountContainer
-              onMouseEnter={() => setAccount(true)}
-              onMouseLeave={() => setAccount(false)}
+                  {link.text}
+                  {activeRoute === link.path && (
+                    <ActiveIndicator>
+                      <Underline />
+                      <Dot />
+                    </ActiveIndicator>
+                  )}
+                </StyledNavLink>
+              </NavLinkItem>
+            ))}
+            <NavLinkItem>
+              <StyledButtonLink to="/login" active={activeRoute === "/login" ? 1 : 0}>
+                Log in
+              </StyledButtonLink>
+            </NavLinkItem>
+            <NavLinkItem>
+              <StyledButtonLink to="/register" active={activeRoute === "/register" ? 1 : 0}>
+                Sign up
+              </StyledButtonLink>
+            </NavLinkItem>
+          </NavLinks>
+          <MenuButton onClick={() => setMenuOpen(true)} menuOpen={menuOpen}>
+            <FiMenu size={32} />
+          </MenuButton>
+        </RightSection>
+      </StyledNav>
+      {/* Spacer to prevent content from being hidden behind fixed nav */}
+      <div style={{ height: scrolled ? 80 : 80 }} />
+      <MobileMenuBox menuOpen={menuOpen}>
+        <CloseButton onClick={() => setMenuOpen(false)}>
+          <FiX size={32} />
+        </CloseButton>
+        <MobileNavLinks>
+          {navLinks.map((link) => (
+            <StyledNavLink
+              to={link.path}
+              key={link.path}
+              active={activeRoute === link.path ? 1 : 0}
+              onClick={() => setMenuOpen(false)}
             >
-              <ArrowContainer>
-                <img src={arror_less} alt="not found" />
-                <span>Account</span>
-              </ArrowContainer>
-              <ButtonColumn
-                account={account}
-                onMouseOver={() => setAccount(true)}
-              >
-                <SoundButton>
-                  <Button
-                    text="Log out"
-                    handleOnClick={handleLogout}
-                    height={35}
-                  />
-                </SoundButton>
-                <Link to="/profile">
-                  <SoundButton>
-                    <Button text="Profile" height={35} />{" "}
-                  </SoundButton>
-                </Link>
-              </ButtonColumn>
-            </AccountContainer>
-          </>
-        ) : (
-          <>
-            <Link to="/login">
-              <SoundButton>
-                <Button text="Log in" height={30} />
-              </SoundButton>
-            </Link>
-            <Link to="/register">
-              <SoundButton>
-                <Button text="Sign up" height={30} />
-              </SoundButton>
-            </Link>
-          </>
-        )}
-        <CartButton onClick={toggleCart}>
-          <AiOutlineShoppingCart size={30} color="white" />
-          {<p>CART({cartTotal})</p>}
-        </CartButton>
-      </ButtonContainer>
-    </StyledNav>
+              {link.text}
+            </StyledNavLink>
+          ))}
+          <StyledButtonLink
+            to="/login"
+            active={activeRoute === "/login" ? 1 : 0}
+            onClick={() => setMenuOpen(false)}
+          >
+            Log in
+          </StyledButtonLink>
+          <StyledButtonLink
+            to="/register"
+            active={activeRoute === "/register" ? 1 : 0}
+            onClick={() => setMenuOpen(false)}
+          >
+            Sign up
+          </StyledButtonLink>
+        </MobileNavLinks>
+      </MobileMenuBox>
+    </>
   );
 };
 
-export default withRouter(Nav);
+export default Nav;
 
 const StyledNav = styled.nav`
-  position: relative;
-  display: flex;
-  /* justify-content: center; */
-  align-items: center;
-  height: var(--nav-height);
-  background-color: var(--nav-color);
-  z-index: 3;
-`;
-
-const InnerLinks = styled.div`
   position: fixed;
   top: 0;
-  display: ${({ open }) => (open ? "flex" : "none")};
-  flex-direction: column;
-  width: 100%;
-  height: 100vh;
-  background-color: var(--nav-color-solid);
-  padding-top: 100px;
-  z-index: 3;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  min-width: 320px;
+  height: 64px;
+  background: ${({ scrolled }) =>
+    scrolled
+      ? "rgba(57, 38, 163, 0.4)"
+      : "black"};
+  backdrop-filter: ${({ scrolled }) =>
+    scrolled ? "blur(12px)" : "none"};
+  transition: background 0.3s, backdrop-filter 0.3s;
+  border-radius: 0px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  justify-content: space-between;
+  box-sizing: border-box;
 
-  @media (min-width: 1268px) {
-    display: flex;
-    position: absolute;
-    top: 50%;
-    right: 400px;
-    width: fit-content;
-    height: initial;
-    padding-top: 0;
-    background-color: transparent;
-    transform: translateY(-50%);
+  @media (min-width: 480px) {
+    height: 72px;
+    padding: 0 10px;
+  }
+  @media (min-width: 768px) {
+    height: 80px;
+    padding: 0 10px;
+  }
+  @media (min-width: 1025px) {
+    height: 100px;
+    padding: 0 5rem;
+  }
+  @media (min-width: 1441px) {
+    height: 100px;
+    padding: 0 10rem;
   }
 `;
 
-const LogoContainer = styled.div`
-  position: absolute;
-  top: 50%;
-  // half of width
-  left: 10px;
-  transform: translate(0, -50%);
-  img {
-    height: 15px;
+const LogoText = styled.span`
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  margin-right: 32px;
+
+  @media (min-width: 768px) {
+    font-size: 1.2rem;
   }
-  @media (min-width: 426px) {
-    left: 25px;
-    img{
-      height: 20px;
-    }
-  }
-  @media (min-width: 769px) {
-    left: 25px;
-    img{
-      height: 30px;
-    }
+  @media (min-width: 1025px) {
+    font-size: 2rem;
   }
 `;
-const IconButton = styled.button`
-  position: absolute;
-  right: 10px;
+
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const NavLinks = styled.ul`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
   padding: 0;
-  ${({ close }) => !close && "top: 50%;"}
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  height: 40px;
-  width: 40px;
-  font-size: 40px;
-  border: none;
-  cursor: pointer;
-  color: white;
-  border: 1px solid white;
-  transform: translate(0, -50%);
-  div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    filter: invert(1);
+  @media (max-width: 767px) {
+    display: none;
   }
-  @media (min-width: 1268px) {
-    display: none;z
-  }
-  @media (min-width: 426px) {
-    right: 25px;
+    @media (min-width: 1440px) {
+    gap: 32px; 
   }
 `;
-const CartButton = styled.button`
+
+const NavLinkItem = styled.li`
+  position: relative;
+`;
+
+const StyledNavLink = styled(Link)`
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 400;
+  position: relative;
+  padding: 8px 0;
+  margin: 0 12px;
+  &:hover {
+    color: #ffa726;
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 1.1rem;
+  }
+`;
+
+const ActiveIndicator = styled.div`
   position: absolute;
-  right: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -10px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: transparent;
+  gap: 2px;
+`;
+
+const Underline = styled.div`
+  width: 32px;
+  height: 4px;
+  background: #ffa726;
+  border-radius: 2px;
+`;
+
+const Dot = styled.div`
+  width: 6px;
+  height: 6px;
+  background: #ffa726;
+  border-radius: 50%;
+`;
+
+const AuthLinks = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+`;
+
+const StyledButtonLink = styled(Link)`
+  color: #fff;
+  background: #ffa726;
   border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  margin: 0 12px;
   cursor: pointer;
-  p {
-    display: none;
-    color: white;
-    margin-left: 5px;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  &:hover {
+    background: #ff9800;
+    color: #fff;
   }
-  @media (min-width: 425px) {
-    right: 75px;
-    p {
-      display: flex;
-    }
-  }
-  @media (min-width: 1268px) {
-    position: relative;
-    right: 0;
+    @media (min-width: 1440px) {
+    padding: 12px 32px;
+    font-size: 1rem;
   }
 `;
 
-const MobileCartButton = styled(CartButton)`
-  @media (min-width: 1268px) {
-    display: none;
-  }
-`;
-
-const LinkContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  @media (min-width: 1268px) {
-    gap: 52px;
-    flex-direction: row;
-  }
-`;
-
-const SpecialLinkContainer = styled(LinkContainer)`
-  @media (min-width: 1268px) {
-    display: none;
-  }
-`;
-
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  color: ${({ active }) => (active ? "var(--cyan)" : "white")};
-  margin: 10px;
-  width: 100%;
-  text-align: center;
-  font-size: 24px;
-
-  :active,
-  :focus {
-    outline: 0;
-    border: none;
-    outline-style: none;
-    -moz-outline-style: none;
-  }
-
-  @media (min-width: 800px) {
-    font-size: 18px;
-  }
-  @media (min-width: 1024px) {
-    width: auto;
-    padding: 5px;
-  }
-  @media (min-width: 1268px) {
-    margin: 0 20px;
-  }
-`;
-
-const StyledA = styled.a`
-  text-decoration: none;
-  color: ${({ active }) => (active ? "var(--cyan)" : "white")};
-  margin: 10px;
-  width: 100%;
-  text-align: center;
-  font-size: 24px;
-
-  :active,
-  :focus {
-    outline: 0;
-    border: none;
-    outline-style: none;
-    -moz-outline-style: none;
-  }
-
-  @media (min-width: 800px) {
-    font-size: 18px;
-  }
-  @media (min-width: 1024px) {
-    width: auto;
-    padding: 5px;
-  }
-  @media (min-width: 1268px) {
-    margin: 0 20px;
-  }
-`;
-
-const ButtonContainer = styled.div`
+const MenuButton = styled.button`
   display: none;
-  flex-direction: row;
-  position: absolute;
-  right: 20px;
-  z-index: 3;
-  a {
-    text-decoration: none;
-    color: white;
-  }
-  a:active,
-  a:focus {
-    outline: 0;
-    border: none;
-    outline-style: none;
-    -moz-outline-style: none;
-  }
-  @media (min-width: 1268px) {
-    display: flex;
-    align-items: center;
-  }
-`;
-const AccountContainer = styled.div`
-  margin: 0 32px;
-  padding: 16px 0;
+  background: none;
+  border: none;
+  color: #fff;
   cursor: pointer;
-`;
-const ButtonColumn = styled.div`
-  position: absolute;
-  top: 100%;
-  transform: translateX(-12%);
-  display: ${({ account }) => (account === true ? "flex" : "none")};
-  flex-direction: column;
+  margin-left: 16px;
+  @media (max-width: 767px) {
+    display: ${({ menuOpen }) => (menuOpen ? "none" : "block")};
+  }
 `;
 
-const ArrowContainer = styled.div`
+const MobileMenuBox = styled.div`
+  position: absolute;
+  top: 80px;
+  left: 0;
+  width: 100vw;
+  background: #3926a3;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  border-radius: 0 0 24px 24px;
+  z-index: 100;
+  display: ${({ menuOpen }) => (menuOpen ? "flex" : "none")};
+  flex-direction: column;
+  align-items: flex-end;
+  animation: fadeIn 0.3s ease;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  margin: 16px 24px 0 0;
+`;
+
+const MobileNavLinks = styled.div`
+  width: 100%;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 0 32px 0;
 `;
