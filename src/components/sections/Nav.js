@@ -29,7 +29,7 @@ const Nav = () => {
   }, []);
 
   return (
-    <>
+    <Div>
       <StyledNav scrolled={scrolled}>
         <LogoText>MISSION: G.A.I.A.</LogoText>
         <RightSection>
@@ -99,11 +99,15 @@ const Nav = () => {
           </StyledButtonLink>
         </MobileNavLinks>
       </MobileMenuBox>
-    </>
+    </Div>
   );
 };
 
 export default Nav;
+
+const Div = styled.div `
+  z-index: 9999;
+`;
 
 const StyledNav = styled.nav`
   position: fixed;
@@ -112,11 +116,12 @@ const StyledNav = styled.nav`
   right: 0;
   width: 100vw;
   min-width: 320px;
+  z-index: 9999;
   height: 64px;
   background: ${({ scrolled }) =>
     scrolled
       ? "rgba(57, 38, 163, 0.4)"
-      : "black"};
+      : "#00008B"};
   backdrop-filter: ${({ scrolled }) =>
     scrolled ? "blur(12px)" : "none"};
   transition: background 0.3s, backdrop-filter 0.3s;
@@ -274,7 +279,7 @@ const MobileMenuBox = styled.div`
   background: #3926a3;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   border-radius: 0 0 24px 24px;
-  z-index: 100;
+  z-index: 1;
   display: ${({ menuOpen }) => (menuOpen ? "flex" : "none")};
   flex-direction: column;
   align-items: flex-end;
